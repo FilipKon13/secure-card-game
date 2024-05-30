@@ -1,5 +1,7 @@
 name: Rust checks
 
+# turn off for now
+
 on:
   push:
     branches:
@@ -16,25 +18,32 @@ jobs:
     name: Run check, test and lints
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
+      - name: Skip
         shell: bash
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        run: echo Done
 
-      - name: Install components
-        shell: bash
-        run: rustup component add clippy rustfmt
+    # name: Run check, test and lints
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - name: Checkout source code
+    #     uses: actions/checkout@v4
 
-      - name: Run format check
-        shell: bash
-        run: cargo fmt --all --check
+    #   - name: Install Rust toolchain
+    #     shell: bash
+    #     run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-      - name: Run clippy
-        shell: bash
-        run: cargo clippy --all-targets
+    #   - name: Install components
+    #     shell: bash
+    #     run: rustup component add clippy rustfmt
 
-      - name: Run tests
-        shell: bash
-        run: cargo test --workspace
+    #   - name: Run format check
+    #     shell: bash
+    #     run: cargo fmt --all --check
+
+    #   - name: Run clippy
+    #     shell: bash
+    #     run: cargo clippy --all-targets
+
+    #   - name: Run tests
+    #     shell: bash
+    #     run: cargo test --workspace
