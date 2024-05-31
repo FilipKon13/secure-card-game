@@ -26,7 +26,7 @@ where
 
 fn format_cards(cards: impl Iterator<Item = PlayingCard>) -> String {
     cards
-        .map(|f| format!("{:?}", f))
+        .map(|f| format!("{}", f))
         .collect::<Vec<String>>()
         .join(", ")
 }

@@ -1,6 +1,6 @@
 use ark_ec::{short_weierstrass::Projective, Group};
 use ark_pallas::{PallasConfig, Projective as G};
-use ark_std::{iterable::Iterable, Zero};
+use ark_std::iterable::Iterable;
 
 pub type EncryptedValue = Projective<PallasConfig>;
 
@@ -11,12 +11,11 @@ pub struct Translator {
 impl Translator {
     pub fn new() -> Self {
         let g = G::generator();
-        let mut actual = G::zero();
+        let mut actual = -g;
         let res = Translator {
             cards: core::array::from_fn(|_| {
-                let old = actual;
                 actual += g;
-                old
+                actual
             }),
         };
         res
@@ -31,7 +30,7 @@ mod tests {
     use crate::*;
     use ark_ff::Field;
     use ark_pallas::Fr as ScalarField;
-    use ark_std::{ops::Mul, UniformRand};
+    use ark_std::{ops::Mul, UniformRand, Zero};
 
     #[test]
     fn it_works() {
