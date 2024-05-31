@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
 pub enum Suit {
     Spades = 0,
     Hearths,
@@ -8,7 +9,8 @@ pub enum Suit {
     Clubs,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
 pub enum Rank {
     Two = 2,
     Three,
@@ -25,7 +27,7 @@ pub enum Rank {
     Ace,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Card {
     pub suit: Suit,
     pub rank: Rank,
@@ -63,5 +65,62 @@ impl Display for PlayingCard {
             PlayingCard::Up(card) => card.fmt(f),
             PlayingCard::Hidden => write!(f, "#"),
         }
+    }
+}
+
+pub fn card_from_index(ind: usize) -> Card {
+    assert!(ind < 52);
+    Card {
+        suit: unsafe { ::std::mem::transmute((ind / 13) as u8) },
+        rank: unsafe { ::std::mem::transmute((ind % 13 + 2) as u8) },
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn casting_cards() {
+        assert_eq!(
+            card_from_index(0),
+            Card {
+                rank: Rank::Two,
+                suit: Suit::Spades
+            }
+        );
+        assert_eq!(
+            card_from_index(34),
+            Card {
+                rank: Rank::Ten,
+                suit: Suit::Diamonds
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn casting_fail() {
+        card_from_index(52);
+    }
+
+    #[test]
+    #[should_panic]
+    fn casting_fail2() {
+        card_from_index(113);
+    }
+
+    #[test]
+    fn card_display() {
+        assert_eq!(
+            format!(
+                "{}",
+                Card {
+                    rank: Rank::Ace,
+                    suit: Suit::Diamonds
+                }
+            ),
+            "A♦"
+        );
     }
 }
