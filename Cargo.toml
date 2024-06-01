@@ -10,7 +10,7 @@ common = { path = "./common", package = "common-scg" }
 crypto = { path = "./crypto", package = "crypto-scg" }
 
 [workspace]
-members = [ "cli", "common" , "crypto"]
+members = [ "cli", "common" , "crypto", "network"]
 
 [dev-dependencies]
 cli = { path = "cli", package = "cli-scg" }
