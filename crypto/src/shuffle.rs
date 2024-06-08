@@ -1,4 +1,5 @@
-use crate::encryption::{decrypt, encrypt, rand_key, EncryptedValue, KeyType};
+use crate::encryption::{decrypt, encrypt, rand_key};
+use crate::types::{EncryptedValue, KeyType};
 use rand::{seq::SliceRandom, thread_rng};
 
 /*
@@ -36,6 +37,13 @@ pub struct PartyBasic {
 }
 
 impl PartyBasic {
+    pub fn new() -> Self {
+        PartyBasic {
+            state: PartyState::WaitForShuffle,
+            keys: vec![],
+            deck: vec![],
+        }
+    }
     fn encrypt_and_shuffle(&mut self, deck: &mut Vec<EncryptedValue>) {
         assert_eq!(self.state, PartyState::WaitForShuffle, "Illegal state");
         let key = rand_key();
@@ -73,6 +81,13 @@ impl PartyBasic {
             PartyState::Done => return,
         };
     }
+    pub fn is_done(&self) -> bool {
+        self.state == PartyState::Done
+    }
+    pub fn get_deck(self) -> (Vec<EncryptedValue>, Vec<KeyType>) {
+        assert!(self.is_done());
+        (self.deck, self.keys)
+    }
 }
 
 #[cfg(test)]
@@ -81,16 +96,8 @@ mod test {
 
     use super::*;
 
-    fn new_party() -> PartyBasic {
-        PartyBasic {
-            state: PartyState::WaitForShuffle,
-            keys: vec![],
-            deck: vec![],
-        }
-    }
-
     fn prepare_players() -> Vec<PartyBasic> {
-        vec![new_party(), new_party(), new_party()]
+        vec![PartyBasic::new(), PartyBasic::new(), PartyBasic::new()]
     }
 
     #[test]
@@ -107,7 +114,7 @@ mod test {
             let mut done = true;
             for player in players.iter_mut() {
                 player.make_turn(&mut deck);
-                done &= player.state == PartyState::Done;
+                done &= player.is_done();
             }
             if done {
                 break;
@@ -119,9 +126,10 @@ mod test {
     fn check_decks() {
         let mut players = prepare_players();
         run_protocol(&mut players);
-        assert!(players.windows(2).all(|w| w[0].deck == w[1].deck));
-        assert!(players.iter().all(|p| p.deck.len() == 52));
-        assert!(players.iter().all(|p| p.keys.len() == 52));
+        let (decks, keys): (Vec<_>, Vec<_>) = players.into_iter().map(|p| p.get_deck()).unzip();
+        assert!(decks.windows(2).all(|w| w[0] == w[1]));
+        assert!(decks.iter().all(|d| d.len() == 52));
+        assert!(keys.iter().all(|k| k.len() == 52));
     }
 
     #[test]

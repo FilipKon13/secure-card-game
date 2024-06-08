@@ -182,9 +182,12 @@ dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-pallas",
+ "ark-serialize",
  "ark-std",
  "ark-test-curves",
  "rand",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -388,6 +391,8 @@ dependencies = [
  "cli-scg",
  "common-scg",
  "crypto-scg",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
