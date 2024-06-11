@@ -24,14 +24,14 @@ use rand::{seq::SliceRandom, thread_rng};
  */
 
 #[derive(Debug, PartialEq, Eq)]
-enum PartyState {
+pub enum PartyState {
     WaitForShuffle,
     WaitForEncryption,
     WaitForDeck,
     Done,
 }
 pub struct PartyBasic {
-    state: PartyState,
+    pub state: PartyState,
     keys: Vec<KeyType>,
     deck: Vec<EncryptedValue>,
 }
@@ -82,10 +82,10 @@ impl PartyBasic {
         };
     }
     pub fn is_done(&self) -> bool {
-        self.state == PartyState::Done
+        return self.state == PartyState::Done;
     }
-    pub fn get_deck(self) -> (Vec<EncryptedValue>, Vec<KeyType>) {
-        assert!(self.is_done());
+    pub fn retrieve_deck(self) -> (Vec<EncryptedValue>, Vec<KeyType>) {
+        assert_eq!(self.state, PartyState::Done);
         (self.deck, self.keys)
     }
 }
@@ -114,7 +114,7 @@ mod test {
             let mut done = true;
             for player in players.iter_mut() {
                 player.make_turn(&mut deck);
-                done &= player.is_done();
+                done &= player.state == PartyState::Done;
             }
             if done {
                 break;
@@ -126,7 +126,8 @@ mod test {
     fn check_decks() {
         let mut players = prepare_players();
         run_protocol(&mut players);
-        let (decks, keys): (Vec<_>, Vec<_>) = players.into_iter().map(|p| p.get_deck()).unzip();
+        let (decks, keys): (Vec<_>, Vec<_>) =
+            players.into_iter().map(|p| p.retrieve_deck()).unzip();
         assert!(decks.windows(2).all(|w| w[0] == w[1]));
         assert!(decks.iter().all(|d| d.len() == 52));
         assert!(keys.iter().all(|k| k.len() == 52));
@@ -143,7 +144,7 @@ mod test {
                 *value = decrypt(*value, key);
             }
         }
-        let translator = Translator::new();
+        let translator = Translator::new(&basic_deck());
         let mut perm = deck
             .into_iter()
             .map(|v| translator.translate(v))

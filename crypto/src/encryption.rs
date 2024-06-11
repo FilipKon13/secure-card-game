@@ -20,10 +20,8 @@ pub fn basic_deck() -> [EncryptedValue; 52] {
 }
 
 impl Translator {
-    pub fn new() -> Self {
-        Translator {
-            cards: basic_deck(),
-        }
+    pub fn new(deck: &[EncryptedValue; 52]) -> Self {
+        Translator { cards: *deck }
     }
     pub fn translate(&self, value: EncryptedValue) -> Option<usize> {
         self.cards.iter().position(|v| v == value)
@@ -50,7 +48,7 @@ mod tests {
 
     #[test]
     fn starting_deck() {
-        let deck = Translator::new().cards;
+        let deck = Translator::new(&basic_deck()).cards;
         let g = EncryptedValue::new(EncryptedValueType::generator());
         for (i, v) in deck.iter().enumerate() {
             assert_eq!(v, encrypt(g, KeyType::from(i as i64)));
@@ -59,7 +57,7 @@ mod tests {
 
     #[test]
     fn translation() {
-        let translator = Translator::new();
+        let translator = Translator::new(&basic_deck());
         const INDEX: i64 = 10;
         let elem = encrypt(
             EncryptedValue::new(EncryptedValueType::generator()),
@@ -71,7 +69,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn translation_fail() {
-        let translator = Translator::new();
+        let translator = Translator::new(&basic_deck());
         const INDEX: i64 = 60;
         let elem = encrypt(
             EncryptedValue::new(EncryptedValueType::generator()),
