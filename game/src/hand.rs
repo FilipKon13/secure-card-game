@@ -1,33 +1,48 @@
-use egui::Vec2;
-use egui::Memory;
-use eframe::egui;
+use gtk::{subclass::drawing_area, DrawingArea};
 
-use crate::card::Card;
+use crate::{clickable::Clickable, image_database::image_database};
 
-#[derive(Clone, Default)]
-pub struct Hand<'a> {
-    cards: Option<Vec<Card<'a>>>,
+pub struct Hand {
+    cards: Vec<Clickable>,
 }
 
-impl<'a> Hand<'a> {
-    pub fn new(cards: Vec<Card<'a>>) -> Hand<'a> {
-        // let mut cards = Vec::<Card>::new();
-        // for image in images {
-        //     cards.push(Card::new(image));
-        // }
-        Self {cards: Some(cards)}
-    }
-}
+impl Hand {
+    pub fn new(cards: Vec<common::cards::Card>, image_database: &image_database) -> Self {
+        let size = cards.len();
+        let angle_offset = f64::min(3.0, 60.0 / (size as f64));
+        let offset_x = f64::min(30.0, 800.0 / (size as f64));
+        let offset_y = f64::min(10.0, 100.0 / (size as f64));
+        let center = (size as f64) / 2.0;
+        let mut clickable_cards = Vec::<Clickable>::new();
 
-impl super::View for Hand<'_> {
-    fn ui(&mut self, ui: &mut ::egui::Ui, rect: egui::Rect) {
-        let rect_down = rect.clone().split_top_bottom_at_fraction(0.7).1;
-        let center = (self.cards.as_ref().unwrap().len() as f32) / 2.0;
-        for (i, card) in self.cards.as_ref().unwrap().iter().enumerate() {
-            ui.put(
-                rect_down.clone().translate(Vec2::new(30.0 * ((i as f32) - center), 0.0)),
-                card.image.clone().unwrap().rounding(5.0).max_size(Vec2::new(600.0, 300.0)).rotate(0.1 * ((i as f32) - center), Vec2::new(0.5, 1.0))
-            );
+        for (i, card) in cards.iter().enumerate() {
+            let pixbuf = image_database.get_card_image(card.clone());
+            let pos_x = 600.0 + offset_x * ((i as f64) - center);
+            let pos_y = 800.0 - (pixbuf.height() as f64) / 2.0 + (f64::abs((i as f64) - center)) * offset_y;
+            let angle = angle_offset * ((i as f64) - center);
+            
+            clickable_cards.push(Clickable::new(card.to_string(), pos_x, pos_y, angle, pixbuf));
+        }
+        Self {
+            cards: clickable_cards,
         }
     }
+
+    pub fn draw(&self, drawing_area: DrawingArea) {
+        for card in self.cards.clone() {
+            card.draw(drawing_area.clone());
+        }
+    }
+    
+    pub fn clicked(&self, x: f64, y: f64) -> String {
+        for card in self.cards.iter().rev() {
+            let tmp = card.clicked(x, y);
+            if tmp != "".to_string() {
+                return tmp;
+            }
+
+        }
+        return "".to_string();
+    }
+
 }

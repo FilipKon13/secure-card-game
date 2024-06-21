@@ -1,53 +1,123 @@
-use std::clone;
+use gtk::prelude::*;
+use gtk::{Application, ApplicationWindow, DrawingArea, EventBox, Image, Overlay};
+use std::cell::RefCell;
+use std::rc::Rc;
 
-use common::cards::*;
-use eframe::{egui};
-use egui::Vec2;
-use game::{card::Card, image_database::image_database, View};
+use common::{cards::Card};
+use game::{hand::Hand, image_database::image_database, stack::Stack};
 
 fn main() {
-    
-    let native_options = eframe::NativeOptions::default();
-    let _ = eframe::run_native(
-        "Secure Card Game", 
-        native_options, 
-        Box::new(
-            |cc| {
-                egui_extras::install_image_loaders(&cc.egui_ctx);
-                Box::new(MyEguiApp::new(cc))
-            }
-        )
-    );
+    let application = Application::builder()
+        .application_id("com.example.FirstGtkApp")
+        .build();
+
+    application.connect_activate(|app| {
+        let window = ApplicationWindow::builder()
+            .application(app)
+            .title("First GTK Program")
+            .default_width(1200)
+            .default_height(800)
+            .resizable(false)
+            .build();
+
+        window.show_all();
+
+        // Main game loop integrated with GTK's timeout_add
+        let game_state = Rc::new(RefCell::new(GameState::new(window)));
+        start_game_loop(game_state.clone());
+    });
+
+    application.run();
 }
 
-#[derive(Default)]
-struct MyEguiApp<'a> { 
-    pub image_database: image_database<'a>,
+struct GameState {
+    redraw: bool,
+    window: ApplicationWindow,
+    image_database: image_database,
 }
 
-impl MyEguiApp<'_> {
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        Self::default()
-    }
-}
-
-impl eframe::App for MyEguiApp<'_> {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        let mut stack = game::stack::Stack::new(52, self.image_database.get_image("back_blue"));
-        let mut cards = Vec::<Card>::new();
-        for i in 5..15 {
-            cards.push(game::card::Card::new(self.image_database.get_card_image(common::cards::card_from_index(i))));
+impl GameState {
+    fn new(window: ApplicationWindow) -> Self {
+        Self {
+            redraw: true,
+            window: window,
+            image_database: image_database::default(),
         }
-        let mut hand = game::hand::Hand::new(cards);
-        let mut card = game::card::Card::new(self.image_database.get_card_image(common::cards::card_from_index(22)));
-        let mut background = self.image_database.get_image("background");
-        egui::CentralPanel::default().show(ctx, |ui| {
-            let rect = ui.add(background).rect;
-            println!("{} {} {} {}", rect.top(), rect.left(), rect.bottom(), rect.right());
-            // card.ui(ui, rect.clone());
-            stack.ui(ui, rect.clone());
-            hand.ui(ui, rect.clone());
-            // ui.heading("Hello World!");
-        });
     }
+
+    fn update(&mut self) {
+        
+        
+        
+        if self.redraw {
+            for child in self.window.children() {
+                self.window.remove(&child);
+            }
+            
+            // let card = common::cards::card_from_index(15);
+            // let card2 = common::cards::card_from_index(40);
+            // let clickableCard = Clickable::new(card.to_string(), 100.0, 0.0, 45.0, self.image_database.get_card_image(card));
+            // let clickableCard2 = Clickable::new(card2.to_string(), 100.0, 300.0, 45.0, self.image_database.get_card_image(card2));
+
+            let mut hand_cards = Vec::<Card>::new();
+            for i in 0..15 {
+                hand_cards.push(common::cards::card_from_index(i));
+            }
+            let hand = Hand::new(hand_cards, &self.image_database);
+            let stack = Stack::new(52, &self.image_database);
+
+            let overlay = Overlay::new();
+            {
+                //background
+                let background_image_pixbuf = self.image_database.get_image("background");
+                let background = Image::from_pixbuf(Some(&background_image_pixbuf));
+                overlay.add(&background);
+            }
+            let drawing_area = DrawingArea::new();
+            overlay.add_overlay(&drawing_area);
+            {
+                //cards
+                // clickableCard.draw(drawing_area.clone());
+                // clickableCard2.draw(drawing_area.clone());
+                hand.draw(drawing_area.clone());
+                stack.draw(drawing_area.clone());
+            }
+            {
+                //event box
+                let event_box = EventBox::new();
+                event_box.connect_button_press_event(move |event_box, event| {
+                    let (x,y) = event.position();
+                    let mut clicked = hand.clicked(x,y);
+                    if clicked == "".to_string() {
+                        clicked = stack.clicked(x,y);
+                    }
+                    println!("{}", clicked);
+                    Inhibit(false)
+                });
+                overlay.add_overlay(&event_box);
+            }
+
+
+            self.window.add(&overlay);
+            self.window.show_all();
+
+            self.redraw = false;
+        }
+        // Clear the window
+        // self.clear_window();
+        
+        
+        // Add new widgets to the window
+        // self.add_widgets();
+        
+        
+    }
+}
+
+fn start_game_loop(game_state: Rc<RefCell<GameState>>) {
+    // Using glib's timeout_add to schedule updates on the main GTK thread
+    glib::timeout_add_local(std::time::Duration::from_millis(16), move || {
+        game_state.borrow_mut().update();
+        glib::Continue(true)
+    });
 }

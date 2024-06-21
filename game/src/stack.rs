@@ -1,25 +1,42 @@
-use egui::Vec2;
-use eframe::egui;
+use gtk::{subclass::drawing_area, DrawingArea};
 
-#[derive(Clone, Default)]
-pub struct Stack<'a> {
-    size: usize,
-    image: Option<egui::Image<'a>>,
+use crate::{clickable::{self, Clickable}, image_database::image_database};
+
+pub struct Stack {
+    cards: Vec<Clickable>,
 }
 
-impl<'a> Stack<'a> {
-    pub fn new(size: usize, image: egui::Image<'a>) -> Stack<'a> {
-        Self {size: size, image: Some(image)}
-    }
-}
+impl Stack {
+    pub fn new(size: usize, image_database: &image_database) -> Self {
 
-impl super::View for Stack<'_> {
-    fn ui(&mut self, ui: &mut ::egui::Ui, rect: egui::Rect) {
-        for i in 1..self.size {
-            ui.put(
-                rect.clone().translate(Vec2::new(-1.0 * (i as f32),-1.0 * (i as f32))),
-                self.image.clone().unwrap().rounding(5.0).max_size(Vec2::new(600.0, 300.0))
-            );
+        let mut clickable_cards = Vec::<Clickable>::new();
+        let pixbuf = image_database.get_image("back_blue");
+
+        for i in 0..size {
+            let pos_x = 150.0 - ((i as f64) * 1.0);
+            let pos_y = 400.0 - ((i as f64) * 1.0);
+            clickable_cards.push(Clickable::new("stack".to_string(), pos_x, pos_y, 0.0, pixbuf.clone()));
+        }
+        Self {
+            cards: clickable_cards,
         }
     }
+
+    pub fn draw(&self, drawing_area: DrawingArea) {
+        for card in self.cards.clone() {
+            card.draw(drawing_area.clone());
+        }
+    }
+    
+    pub fn clicked(&self, x: f64, y: f64) -> String {
+        for card in self.cards.iter().rev() {
+            let tmp = card.clicked(x, y);
+            if tmp != "".to_string() {
+                return tmp;
+            }
+
+        }
+        return "".to_string();
+    }
+
 }

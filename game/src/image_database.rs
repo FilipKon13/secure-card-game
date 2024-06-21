@@ -1,46 +1,46 @@
-
-use eframe::egui;
+use gtk::Image;
+use gtk::gdk_pixbuf::Pixbuf;
+// use gdk_pixbuf::Pixbuf;
 use std::{collections::HashMap};
 
-
-pub struct image_database<'a> {
-    pub image_map: HashMap::<String, egui::Image<'a>>,
+pub struct image_database {
+    pub image_map: HashMap::<String, gtk::gdk_pixbuf::Pixbuf>,
 }
 
-impl Default for image_database<'_> {
+impl Default for image_database {
     fn default() -> Self {
-        let mut images = HashMap::<String, egui::Image>::new();
+        let mut images = HashMap::<String, gtk::gdk_pixbuf::Pixbuf>::new();
         for index in 0..52 {
             let card = common::cards::card_from_index(index);
             let card_name = format!("{}", card);
             let path = format!("assets/fronts/{}.svg", card_name);
-            let image = egui::Image::new(format!("file://{path}"));
 
-            images.insert(card_name, image);
+            let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
+
+            images.insert(card_name, pixbuf);
         }
 
         {
             let path = "assets/backs/abstract_clouds.svg";
-            let image = egui::Image::new(format!("file://{path}"));
+            let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
 
-            images.insert("back_abstract".to_string(), image);
+            images.insert("back_abstract".to_string(), pixbuf);
         }
 
         {
             let path = "assets/backs/blue.svg";
-            let image = egui::Image::new(format!("file://{path}"));
+            let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
 
-            images.insert("back_blue".to_string(), image);
+            images.insert("back_blue".to_string(), pixbuf);
         }
 
         {
             let path = "assets/background.jpg";
-            let image = egui::Image::new(format!("file://{path}"));
+            
+            let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 1200, 800, true).unwrap();
 
-            images.insert("background".to_string(), image);
+            images.insert("background".to_string(), pixbuf);
         }
-
-        
 
         Self {
             image_map: images,
@@ -48,13 +48,13 @@ impl Default for image_database<'_> {
     }
 }
 
-impl image_database<'_> {
-    pub fn get_card_image(&self, card: common::cards::Card) -> egui::Image {
+impl image_database {
+    pub fn get_card_image(&self, card: common::cards::Card) -> gtk::gdk_pixbuf::Pixbuf {
         let card_name = format!("{}", card);
         return self.image_map.get(&card_name).unwrap().clone();
     }
 
-    pub fn get_image(&self, name: &str) -> egui::Image {
+    pub fn get_image(&self, name: &str) -> gtk::gdk_pixbuf::Pixbuf {
         return self.image_map.get(name).unwrap().clone();
     }
 }

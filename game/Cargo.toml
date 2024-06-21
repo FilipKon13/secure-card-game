@@ -7,11 +7,5 @@ edition = "2021"
 
 [dependencies]
 common = { path = "./../common", package = "common-scg" }
-eframe = { version = "0.27.2", default-features = false, features = [
-    "default_fonts", # Embed the default egui fonts.
-    "glow",          # Use the glow rendering backend. Alternative: "wgpu".
-    "persistence",   # Enable restoring app state when restarting the app.
-] }
-egui = "0.27.2"
-egui_extras = { version = "*", features = ["all_loaders"] }
-image = { version = "0.24", features = ["jpeg", "png"] }
+gtk = "0.16"
+glib = "0.16"
