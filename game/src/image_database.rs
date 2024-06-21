@@ -3,11 +3,11 @@ use gtk::gdk_pixbuf::Pixbuf;
 // use gdk_pixbuf::Pixbuf;
 use std::{collections::HashMap};
 
-pub struct image_database {
+pub struct ImageDatabase {
     pub image_map: HashMap::<String, gtk::gdk_pixbuf::Pixbuf>,
 }
 
-impl Default for image_database {
+impl Default for ImageDatabase {
     fn default() -> Self {
         let mut images = HashMap::<String, gtk::gdk_pixbuf::Pixbuf>::new();
         for index in 0..52 {
@@ -48,7 +48,7 @@ impl Default for image_database {
     }
 }
 
-impl image_database {
+impl ImageDatabase {
     pub fn get_card_image(&self, card: common::cards::Card) -> gtk::gdk_pixbuf::Pixbuf {
         let card_name = format!("{}", card);
         return self.image_map.get(&card_name).unwrap().clone();

@@ -1,13 +1,13 @@
-use gtk::{subclass::drawing_area, DrawingArea};
+use gtk::DrawingArea;
 
-use crate::{clickable::Clickable, image_database::image_database};
+use crate::{clickable::Clickable, image_database::ImageDatabase};
 
 pub struct Hand {
     cards: Vec<Clickable>,
 }
 
 impl Hand {
-    pub fn new(cards: Vec<common::cards::Card>, image_database: &image_database) -> Self {
+    pub fn new(cards: Vec<common::cards::Card>, image_database: &ImageDatabase) -> Self {
         let size = cards.len();
         let angle_offset = f64::min(3.0, 60.0 / (size as f64));
         let offset_x = f64::min(30.0, 800.0 / (size as f64));

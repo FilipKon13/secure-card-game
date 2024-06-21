@@ -1,13 +1,13 @@
 use gtk::{subclass::drawing_area, DrawingArea};
 
-use crate::{clickable::{self, Clickable}, image_database::image_database};
+use crate::{clickable::{self, Clickable}, image_database::ImageDatabase};
 
 pub struct Stack {
     cards: Vec<Clickable>,
 }
 
 impl Stack {
-    pub fn new(size: usize, image_database: &image_database) -> Self {
+    pub fn new(size: usize, image_database: &ImageDatabase) -> Self {
 
         let mut clickable_cards = Vec::<Clickable>::new();
         let pixbuf = image_database.get_image("back_blue");
