@@ -4,17 +4,20 @@ use std::rc::Rc;
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 
-use crate::game_state::GameState;
-
-pub static mut NUM_PLAYERS: u32 = 0;
-pub static mut PLAYER_ID: u32 = 0;
+use crate::game_state::{Data, GameState};
 
 pub fn lobby_window() -> (u32, u32) {
     let application = Application::builder()
         .application_id("com.example.SecureCardGame")
         .build();
 
-    application.connect_activate(|app| {
+    let data = Rc::new(RefCell::new(Data {
+        num_players: 0,
+        player_id: 0,
+    }));
+    let data_clone = Rc::clone(&data);
+
+    application.connect_activate(move |app| {
         let window = ApplicationWindow::builder()
             .application(app)
             .title("First GTK Program")
@@ -25,19 +28,21 @@ pub fn lobby_window() -> (u32, u32) {
 
         window.show_all();
 
+        let data_clone = Rc::clone(&data);
+
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameState::new(window, String::from("lobby"))));
+        let game_state = Rc::new(RefCell::new(GameState::new(
+            window,
+            String::from("lobby"),
+            data_clone,
+        )));
         start_game_loop(game_state.clone());
     });
 
     application.run();
 
-    let mut num_players = 0;
-    let mut player_id = 0;
-    unsafe {
-        num_players = NUM_PLAYERS;
-        player_id = PLAYER_ID;
-    }
+    let num_players = data_clone.borrow_mut().num_players;
+    let player_id = data_clone.borrow_mut().player_id;
     println!("data {} {}", num_players, player_id);
     (num_players, player_id)
 }
@@ -58,8 +63,17 @@ pub fn table_window() {
 
         window.show_all();
 
+        let data = Rc::new(RefCell::new(Data {
+            num_players: 0,
+            player_id: 0,
+        }));
+
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameState::new(window, String::from("table"))));
+        let game_state = Rc::new(RefCell::new(GameState::new(
+            window,
+            String::from("table"),
+            data,
+        )));
         start_game_loop(game_state.clone());
     });
 

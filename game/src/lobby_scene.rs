@@ -1,21 +1,26 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use gtk::prelude::{ButtonExt, ContainerExt, EntryExt, GtkWindowExt, WidgetExt};
 use gtk::{Align, ApplicationWindow, Box, Button, Entry, Label};
 
+use crate::game_state::Data;
 use crate::image_database::ImageDatabase;
-use crate::window;
 
 pub struct LobbyScene {
     pub window: ApplicationWindow,
     pub redraw: bool,
     pub image_database: ImageDatabase,
+    pub data: Rc<RefCell<Data>>,
 }
 
 impl LobbyScene {
-    pub fn new(window: ApplicationWindow) -> Self {
+    pub fn new(window: ApplicationWindow, data: Rc<RefCell<Data>>) -> Self {
         Self {
             window,
             redraw: true,
             image_database: ImageDatabase::default(),
+            data,
         }
     }
 }
@@ -59,17 +64,15 @@ impl super::Scene for LobbyScene {
             let btn = Button::with_label("Start game");
 
             let window_clone = self.window.clone();
+            let data_clone = self.data.clone();
             btn.connect_clicked(move |_| {
                 let num_players: u32 = num_players_input.text().as_str().parse().unwrap();
                 let player_id: u32 = player_id_input.text().as_str().parse().unwrap();
                 println!("clicked, {} {}", num_players, player_id);
+                data_clone.borrow_mut().num_players = num_players;
+                data_clone.borrow_mut().player_id = player_id;
+
                 window_clone.close();
-                unsafe {
-                    window::PLAYER_ID = player_id;
-                }
-                unsafe {
-                    window::NUM_PLAYERS = num_players;
-                }
             });
             hbox_player_id.add(&btn);
             vbox.add(&hbox_player_id);

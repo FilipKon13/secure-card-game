@@ -70,7 +70,7 @@ fn draw_rotated_image(
     angle: f64,
     pixbuf: &Pixbuf,
 ) {
-    cr.save();
+    let _ = cr.save();
 
     cr.translate(x, y);
 
@@ -79,7 +79,7 @@ fn draw_rotated_image(
     // cr.translate(-x, -y);
 
     cr.set_source_pixbuf(pixbuf, -width, -height);
-    cr.paint();
+    let _ = cr.paint();
 
-    cr.restore();
+    let _ = cr.restore();
 }

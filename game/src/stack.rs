@@ -1,9 +1,6 @@
 use gtk::DrawingArea;
 
-use crate::{
-    clickable::{Clickable},
-    image_database::ImageDatabase,
-};
+use crate::{clickable::Clickable, image_database::ImageDatabase};
 
 pub struct Stack {
     cards: Vec<Clickable>,

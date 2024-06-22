@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use gtk::ApplicationWindow;
 
 use crate::{lobby_scene, table_scene, Scene};
@@ -13,12 +15,12 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(window: ApplicationWindow, window_type: String) -> Self {
+    pub fn new(window: ApplicationWindow, window_type: String, data: Rc<RefCell<Data>>) -> Self {
         if window_type.as_str() == "lobby" {
-            Self {
+            return Self {
                 window: window.clone(),
-                current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone())),
-            }
+                current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone(), data)),
+            };
         } else {
             Self {
                 window: window.clone(),
