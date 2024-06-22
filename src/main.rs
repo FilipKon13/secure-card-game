@@ -1,7 +1,7 @@
 use clap::{ArgGroup, Parser};
 use cli::{CliPrinter, CliSelector};
 use crypto::encryption::{basic_deck, short_deck};
-use game::window::{lobby_window, table_window};
+use game::window::{lobby_window, table_window, GuiPrinter};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
 use simple_game::SimpleGame;
@@ -31,22 +31,24 @@ struct Cli {
 }
 
 fn main() {
-    let Cli {
-        address,
-        client,
-        server,
-    } = Cli::parse();
-    assert_ne!(client, server);
-    let num_players = 2u32;
-    let player_id = if server { 0u32 } else { 1u32 };
+    // let Cli {
+    //     address,
+    //     client,
+    //     server,
+    // } = Cli::parse();
+    // assert_ne!(client, server);
+    // let num_players = 2u32;
+    // let player_id = if server { 0u32 } else { 1u32 };
 
-    // let (num_players, player_id) = lobby_window();
+    let (num_players, player_id) = lobby_window();
 
     let startup = ConStartup::new(num_players, player_id);
+    let server: bool = player_id == 0;
+    let address = String::from("127.0.0.1:6700");
+    let server: bool = player_id == 0;
 
-    // let address = String::from("127.0.0.1:6700");
-    // let server: bool = player_id == 0;
-    // table_window();
+    let printer = GuiPrinter {};
+    table_window(printer);
 
     let other = OtherPlayer::new(startup.initialize(&address));
     let name = if server {
@@ -60,11 +62,13 @@ fn main() {
 
     println!("Player deck size: {}", player.deck.len());
 
+    
+
     let game = SimpleGame::new(
         player_id as usize,
         num_players as usize,
         player,
-        CliPrinter {},
+        printer,
         CliSelector {},
     );
 

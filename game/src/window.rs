@@ -1,10 +1,12 @@
 use std::cell::RefCell;
+use std::fmt::Display;
 use std::rc::Rc;
 
+use common::game::{GamePrinter, GameState};
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 
-use crate::game_state::{Data, GameState};
+use crate::game_state::{Data, GameStateLobby, GameStateTable, SceneUpdate};
 
 pub fn lobby_window() -> (u32, u32) {
     let application = Application::builder()
@@ -31,9 +33,8 @@ pub fn lobby_window() -> (u32, u32) {
         let data_clone = Rc::clone(&data);
 
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameState::new(
+        let game_state = Rc::new(RefCell::new(GameStateLobby::new(
             window,
-            String::from("lobby"),
             data_clone,
         )));
         start_game_loop(game_state.clone());
@@ -47,7 +48,7 @@ pub fn lobby_window() -> (u32, u32) {
     (num_players, player_id)
 }
 
-pub fn table_window() {
+pub fn table_window(gui_printer: GuiPrinter) {
     let application = Application::builder()
         .application_id("com.example.SecureCardGame")
         .build();
@@ -63,16 +64,9 @@ pub fn table_window() {
 
         window.show_all();
 
-        let data = Rc::new(RefCell::new(Data {
-            num_players: 0,
-            player_id: 0,
-        }));
-
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameState::new(
+        let game_state = Rc::new(RefCell::new(GameStateTable::new(
             window,
-            String::from("table"),
-            data,
         )));
         start_game_loop(game_state.clone());
     });
@@ -80,10 +74,40 @@ pub fn table_window() {
     application.run();
 }
 
-fn start_game_loop(game_state: Rc<RefCell<GameState>>) {
+fn start_game_loop<T: SceneUpdate + 'static> (game_state: Rc<RefCell<T>>) {
     // Using glib's timeout_add to schedule updates on the main GTK thread
     glib::timeout_add_local(std::time::Duration::from_millis(16), move || {
         game_state.borrow_mut().update();
         glib::Continue(true)
     });
+}
+
+pub struct GuiPrinter {
+
+}
+
+impl GamePrinter for GuiPrinter {
+    fn print_game(&mut self, game_state: &GameState) {
+        let GameState {
+            hand,
+            table_cards,
+            deck_cards,
+        } = game_state;
+        println!("Game State:");
+        println!("Deck: {}", deck_cards);
+        println!("Table: {}", format_cards(table_cards));
+        println!("Hand: {}", format_cards(hand));
+    }
+}
+
+
+fn format_cards<T>(cards: &[T]) -> String
+where
+    T: Display,
+{
+    cards
+        .iter()
+        .map(|f| format!("{}", f))
+        .collect::<Vec<String>>()
+        .join(", ")
 }

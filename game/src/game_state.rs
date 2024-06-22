@@ -9,31 +9,50 @@ pub struct Data {
     pub player_id: u32,
 }
 
-pub struct GameState {
+pub trait SceneUpdate {
+    fn update(&mut self);
+}
+
+pub struct GameStateLobby {
     window: ApplicationWindow,
     current_scene: Box<dyn Scene>,
 }
 
-impl GameState {
-    pub fn new(window: ApplicationWindow, window_type: String, data: Rc<RefCell<Data>>) -> Self {
-        if window_type.as_str() == "lobby" {
-            return Self {
-                window: window.clone(),
-                current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone(), data)),
-            };
-        } else {
-            Self {
-                window: window.clone(),
-                current_scene: Box::new(table_scene::TableScene::new(window.clone())),
-            }
+impl GameStateLobby {
+    pub fn new(window: ApplicationWindow, data: Rc<RefCell<Data>>) -> Self {
+        Self {
+            window: window.clone(),
+            current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone(), data)),
+        }
+    }
+}
+
+impl SceneUpdate for GameStateLobby {
+    fn update(&mut self) {
+        self.current_scene.update();
+    }
+}
+
+pub struct GameStateTable {
+    window: ApplicationWindow,
+    current_scene: Box<dyn Scene>,
+}
+
+impl GameStateTable {
+    pub fn new(window: ApplicationWindow) -> Self {
+        Self {
+            window: window.clone(),
+            current_scene: Box::new(table_scene::TableScene::new(window.clone())),
         }
     }
 
-    pub fn update(&mut self) {
-        self.current_scene.update();
-    }
+    // pub fn update(&mut self) {
+    //     self.current_scene.update();
+    // }
+}
 
-    pub fn set_table_scene(&mut self) {
-        self.current_scene = Box::new(table_scene::TableScene::new(self.window.clone()));
+impl SceneUpdate for GameStateTable {
+    fn update(&mut self) {
+        self.current_scene.update();
     }
 }
