@@ -14,7 +14,7 @@ pub struct TableScene {
 impl TableScene {
     pub fn new(window: ApplicationWindow) -> Self {
         Self {
-            window: window,
+            window,
             redraw: true,
             image_database: ImageDatabase::default(),
         }
@@ -59,10 +59,10 @@ impl super::Scene for TableScene {
             {
                 //event box
                 let event_box = EventBox::new();
-                event_box.connect_button_press_event(move |event_box, event| {
+                event_box.connect_button_press_event(move |_event_box, event| {
                     let (x, y) = event.position();
                     let mut clicked = hand.clicked(x, y);
-                    if clicked == "".to_string() {
+                    if clicked == *"" {
                         clicked = stack.clicked(x, y);
                     }
                     println!("{}", clicked);

@@ -15,10 +15,10 @@ pub struct GameState {
 impl GameState {
     pub fn new(window: ApplicationWindow, window_type: String) -> Self {
         if window_type.as_str() == "lobby" {
-            return Self {
+            Self {
                 window: window.clone(),
                 current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone())),
-            };
+            }
         } else {
             Self {
                 window: window.clone(),

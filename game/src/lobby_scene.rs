@@ -1,5 +1,5 @@
 use gtk::prelude::{ButtonExt, ContainerExt, EntryExt, GtkWindowExt, WidgetExt};
-use gtk::{Align, ApplicationWindow, Box, Button, Entry, Image, Label, Overlay};
+use gtk::{Align, ApplicationWindow, Box, Button, Entry, Label};
 
 use crate::image_database::ImageDatabase;
 use crate::window;
@@ -13,7 +13,7 @@ pub struct LobbyScene {
 impl LobbyScene {
     pub fn new(window: ApplicationWindow) -> Self {
         Self {
-            window: window,
+            window,
             redraw: true,
             image_database: ImageDatabase::default(),
         }

@@ -36,14 +36,14 @@ impl Clickable {
         mat.invert();
 
         let (dx, dy) = mat.transform_point(x, y);
-        let is_clicked = (dx >= self.x - self.width / 2.0
+        let is_clicked = dx >= self.x - self.width / 2.0
             && dx <= self.x + self.width / 2.0
             && dy >= self.y - self.height / 2.0
-            && dy <= self.y + self.height / 2.0);
+            && dy <= self.y + self.height / 2.0;
         if is_clicked {
             return self.name.clone();
         }
-        return "".to_string();
+        "".to_string()
     }
 
     pub fn draw(&self, drawing_area: gtk::DrawingArea) {

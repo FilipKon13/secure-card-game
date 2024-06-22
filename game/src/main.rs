@@ -1,4 +1,4 @@
-use game::{lobby_scene, table_scene, Scene};
+use game::{table_scene, Scene};
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use std::cell::RefCell;

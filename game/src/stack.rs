@@ -1,7 +1,7 @@
 use gtk::DrawingArea;
 
 use crate::{
-    clickable::{self, Clickable},
+    clickable::{Clickable},
     image_database::ImageDatabase,
 };
 
@@ -39,10 +39,10 @@ impl Stack {
     pub fn clicked(&self, x: f64, y: f64) -> String {
         for card in self.cards.iter().rev() {
             let tmp = card.clicked(x, y);
-            if tmp != "".to_string() {
+            if tmp != *"" {
                 return tmp;
             }
         }
-        return "".to_string();
+        "".to_string()
     }
 }

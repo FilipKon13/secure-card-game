@@ -16,7 +16,7 @@ impl Hand {
         let mut clickable_cards = Vec::<Clickable>::new();
 
         for (i, card) in cards.iter().enumerate() {
-            let pixbuf = image_database.get_card_image(card.clone());
+            let pixbuf = image_database.get_card_image(*card);
             let pos_x = 600.0 + offset_x * ((i as f64) - center);
             let pos_y =
                 800.0 - (pixbuf.height() as f64) / 2.0 + (f64::abs((i as f64) - center)) * offset_y;
@@ -44,10 +44,10 @@ impl Hand {
     pub fn clicked(&self, x: f64, y: f64) -> String {
         for card in self.cards.iter().rev() {
             let tmp = card.clicked(x, y);
-            if tmp != "".to_string() {
+            if tmp != *"" {
                 return tmp;
             }
         }
-        return "".to_string();
+        "".to_string()
     }
 }
