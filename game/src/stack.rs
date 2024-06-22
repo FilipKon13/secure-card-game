@@ -1,4 +1,4 @@
-use gtk::{subclass::drawing_area, DrawingArea};
+use gtk::DrawingArea;
 
 use crate::{clickable::{self, Clickable}, image_database::ImageDatabase};
 

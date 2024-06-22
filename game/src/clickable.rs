@@ -1,8 +1,7 @@
-use glib::ObjectExt;
 use gtk::Inhibit;
 use gtk::gdk_pixbuf::Pixbuf;
-use gtk::cairo::{Matrix, Rectangle};
-use gtk::prelude::{ContainerExt, GdkContextExt, WidgetExt};
+use gtk::cairo::Matrix;
+use gtk::prelude::{GdkContextExt, WidgetExt};
 use gtk::cairo::Context;
 
 #[derive(Clone)]

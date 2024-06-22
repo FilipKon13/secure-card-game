@@ -1,11 +1,8 @@
 use game::{lobby_scene, table_scene, Scene};
 use gtk::prelude::*;
-use gtk::{Application, ApplicationWindow, DrawingArea, EventBox, Image, Overlay};
+use gtk::{Application, ApplicationWindow};
 use std::cell::RefCell;
 use std::rc::Rc;
-
-use common::{cards::Card};
-use game::{hand::Hand, image_database::ImageDatabase, stack::Stack};
 
 fn main() {
     let application = Application::builder()
@@ -40,7 +37,7 @@ impl GameState {
     fn new(window: ApplicationWindow) -> Self {
         Self {
             window: window.clone(),
-            current_scene: Box::new(lobby_scene::LobbyScene::new(window.clone())),
+            current_scene: Box::new(table_scene::TableScene::new(window.clone())),
         }
     }
 

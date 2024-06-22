@@ -1,7 +1,4 @@
-use gtk::Image;
-use gtk::gdk_pixbuf::Pixbuf;
-// use gdk_pixbuf::Pixbuf;
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 pub struct ImageDatabase {
     pub image_map: HashMap::<String, gtk::gdk_pixbuf::Pixbuf>,

@@ -1,19 +1,14 @@
-use gtk::atk::Text;
-use gtk::ffi::GtkBox;
-use gtk::{Align, ApplicationWindow, Button, Box, DrawingArea, Entry, EventBox,Image, Inhibit, Label, Overlay};
-use gtk::prelude::{BoxExt, ButtonExt, ContainerExt, EntryExt, OverlayExt, WidgetExt};
+use gtk::{Align, ApplicationWindow, Button, Box, Entry, Label};
+use gtk::prelude::{ButtonExt, ContainerExt, EntryExt, WidgetExt};
 
-use common::cards::Card;
-
-use crate::{hand::Hand, image_database::ImageDatabase, stack::Stack};
 
 pub struct LobbyScene {
-    pub window: gtk::ApplicationWindow,
+    pub window: ApplicationWindow,
     pub redraw: bool,    
 }
 
 impl LobbyScene {
-    pub fn new(window: gtk::ApplicationWindow) -> Self {
+    pub fn new(window: ApplicationWindow) -> Self {
         Self {
             window: window,
             redraw: true,

@@ -6,13 +6,13 @@ use common::cards::Card;
 use crate::{hand::Hand, image_database::ImageDatabase, stack::Stack};
 
 pub struct TableScene {
-    pub window: gtk::ApplicationWindow,
+    pub window: ApplicationWindow,
     pub redraw: bool,
     pub image_database: ImageDatabase,    
 }
 
 impl TableScene {
-    pub fn new(window: gtk::ApplicationWindow) -> Self {
+    pub fn new(window: ApplicationWindow) -> Self {
         Self {
             window: window,
             redraw: true,
