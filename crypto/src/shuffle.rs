@@ -44,7 +44,7 @@ impl PartyBasic {
             deck: vec![],
         }
     }
-    fn encrypt_and_shuffle(&mut self, deck: &mut Vec<EncryptedValue>) {
+    fn encrypt_and_shuffle(&mut self, deck: &mut [EncryptedValue]) {
         assert_eq!(self.state, PartyState::WaitForShuffle, "Illegal state");
         let key = rand_key();
         self.keys.push(key);
@@ -54,7 +54,7 @@ impl PartyBasic {
         deck.shuffle(&mut thread_rng());
         self.state = PartyState::WaitForEncryption;
     }
-    fn decrypt_encrypt(&mut self, deck: &mut Vec<EncryptedValue>) {
+    fn decrypt_encrypt(&mut self, deck: &mut [EncryptedValue]) {
         assert_eq!(self.state, PartyState::WaitForEncryption, "Illegal state");
         let key = *self.keys.first().unwrap();
         self.keys.pop();
@@ -65,28 +65,34 @@ impl PartyBasic {
         }
         self.state = PartyState::WaitForDeck;
     }
-    fn pass_deck(&mut self, deck: &Vec<EncryptedValue>) {
+    fn pass_deck(&mut self, deck: &[EncryptedValue]) {
         match self.state {
-            PartyState::WaitForDeck => self.deck = deck.clone(),
+            PartyState::WaitForDeck => self.deck = deck.to_vec(),
             PartyState::Done => return,
             _ => panic!("Illegal state"),
         };
         self.state = PartyState::Done;
     }
-    pub fn make_turn(&mut self, deck: &mut Vec<EncryptedValue>) {
+    pub fn make_turn(&mut self, deck: &mut [EncryptedValue]) {
         match self.state {
             PartyState::WaitForShuffle => self.encrypt_and_shuffle(deck),
             PartyState::WaitForEncryption => self.decrypt_encrypt(deck),
             PartyState::WaitForDeck => self.pass_deck(deck),
-            PartyState::Done => return,
+            PartyState::Done => (),
         };
     }
     pub fn is_done(&self) -> bool {
-        return self.state == PartyState::Done;
+        self.state == PartyState::Done
     }
     pub fn retrieve_deck(self) -> (Vec<EncryptedValue>, Vec<KeyType>) {
         assert_eq!(self.state, PartyState::Done);
         (self.deck, self.keys)
+    }
+}
+
+impl Default for PartyBasic {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -109,7 +115,7 @@ mod test {
     }
 
     fn run_protocol(players: &mut Vec<PartyBasic>) {
-        let mut deck = basic_deck().into_iter().collect();
+        let mut deck = basic_deck().to_vec();
         loop {
             let mut done = true;
             for player in players.iter_mut() {

@@ -1,19 +1,17 @@
-use std::{default, fmt::Display};
+use std::fmt::Display;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Suit {
-    #[default]
     Spades = 0,
     Hearths,
     Diamonds,
     Clubs,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Rank {
-    #[default]
     Two = 2,
     Three,
     Four,
@@ -29,7 +27,7 @@ pub enum Rank {
     Ace,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Card {
     pub suit: Suit,
     pub rank: Rank,

@@ -1,11 +1,11 @@
 use common::{
     cards::PlayingCard,
-    game::{GameState, Player},
+    game::{GameState, ShowHand},
 };
 
 pub fn print_game<PlayerType>(game_state: GameState<PlayerType>)
 where
-    PlayerType: Player,
+    PlayerType: ShowHand,
 {
     let GameState {
         main_player,
@@ -13,19 +13,16 @@ where
         table_cards,
     } = game_state;
     println!("Game State:");
-    println!("Table: {}", format_cards(table_cards.into_iter()));
-    println!("Hand: {}", format_cards(main_player.cards().into_iter()));
+    println!("Table: {}", format_cards(&table_cards));
+    println!("Hand: {}", format_cards(&main_player.cards()));
     for (ind, player) in other_players.iter().enumerate() {
-        println!(
-            "Player {}: {}",
-            ind,
-            format_cards(player.cards().into_iter())
-        );
+        println!("Player {}: {}", ind, format_cards(&player.cards()));
     }
 }
 
-fn format_cards(cards: impl Iterator<Item = PlayingCard>) -> String {
+fn format_cards(cards: &[PlayingCard]) -> String {
     cards
+        .iter()
         .map(|f| format!("{}", f))
         .collect::<Vec<String>>()
         .join(", ")
