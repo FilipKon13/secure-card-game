@@ -1,7 +1,9 @@
+use std::{cell::RefCell, rc::Rc};
+
 use clap::{ArgGroup, Parser};
 use cli::{CliPrinter, CliSelector};
 use crypto::encryption::{basic_deck, short_deck};
-use game::window::{lobby_window, table_window, GuiPrinter};
+use game::window::{lobby_window, table_window, GuiPrinter, GuiPrinterWrap};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
 use simple_game::SimpleGame;
@@ -41,14 +43,13 @@ fn main() {
     // let player_id = if server { 0u32 } else { 1u32 };
 
     let (num_players, player_id) = lobby_window();
+    let address = String::from("127.0.0.1:6700");
 
     let startup = ConStartup::new(num_players, player_id);
     let server: bool = player_id == 0;
-    let address = String::from("127.0.0.1:6700");
-    let server: bool = player_id == 0;
 
-    let printer = GuiPrinter {};
-    table_window(printer);
+    let printer = Rc::new(RefCell::new(GuiPrinter {}));
+    table_window(printer.clone());
 
     let other = OtherPlayer::new(startup.initialize(&address));
     let name = if server {
@@ -62,13 +63,13 @@ fn main() {
 
     println!("Player deck size: {}", player.deck.len());
 
-    
-
     let game = SimpleGame::new(
         player_id as usize,
         num_players as usize,
         player,
-        printer,
+        GuiPrinterWrap {
+            gui_printer: printer.clone(),
+        },
         CliSelector {},
     );
 

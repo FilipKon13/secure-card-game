@@ -33,10 +33,7 @@ pub fn lobby_window() -> (u32, u32) {
         let data_clone = Rc::clone(&data);
 
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameStateLobby::new(
-            window,
-            data_clone,
-        )));
+        let game_state = Rc::new(RefCell::new(GameStateLobby::new(window, data_clone)));
         start_game_loop(game_state.clone());
     });
 
@@ -48,7 +45,7 @@ pub fn lobby_window() -> (u32, u32) {
     (num_players, player_id)
 }
 
-pub fn table_window(gui_printer: GuiPrinter) {
+pub fn table_window(gui_printer: Rc<RefCell<GuiPrinter>>) {
     let application = Application::builder()
         .application_id("com.example.SecureCardGame")
         .build();
@@ -65,16 +62,14 @@ pub fn table_window(gui_printer: GuiPrinter) {
         window.show_all();
 
         // Main game loop integrated with GTK's timeout_add
-        let game_state = Rc::new(RefCell::new(GameStateTable::new(
-            window,
-        )));
+        let game_state = Rc::new(RefCell::new(GameStateTable::new(window)));
         start_game_loop(game_state.clone());
     });
 
     application.run();
 }
 
-fn start_game_loop<T: SceneUpdate + 'static> (game_state: Rc<RefCell<T>>) {
+fn start_game_loop<T: SceneUpdate + 'static>(game_state: Rc<RefCell<T>>) {
     // Using glib's timeout_add to schedule updates on the main GTK thread
     glib::timeout_add_local(std::time::Duration::from_millis(16), move || {
         game_state.borrow_mut().update();
@@ -82,8 +77,11 @@ fn start_game_loop<T: SceneUpdate + 'static> (game_state: Rc<RefCell<T>>) {
     });
 }
 
-pub struct GuiPrinter {
+pub struct GuiPrinter {}
 
+#[derive(Clone)]
+pub struct GuiPrinterWrap {
+    pub gui_printer: Rc<RefCell<GuiPrinter>>,
 }
 
 impl GamePrinter for GuiPrinter {
@@ -100,6 +98,11 @@ impl GamePrinter for GuiPrinter {
     }
 }
 
+impl GamePrinter for GuiPrinterWrap {
+    fn print_game(&mut self, game_state: &GameState) {
+        self.gui_printer.borrow_mut().print_game(game_state);
+    }
+}
 
 fn format_cards<T>(cards: &[T]) -> String
 where
