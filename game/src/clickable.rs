@@ -1,8 +1,8 @@
-use gtk::Inhibit;
-use gtk::gdk_pixbuf::Pixbuf;
-use gtk::cairo::Matrix;
-use gtk::prelude::{GdkContextExt, WidgetExt};
 use gtk::cairo::Context;
+use gtk::cairo::Matrix;
+use gtk::gdk_pixbuf::Pixbuf;
+use gtk::prelude::{GdkContextExt, WidgetExt};
+use gtk::Inhibit;
 
 #[derive(Clone)]
 pub struct Clickable {
@@ -16,7 +16,7 @@ pub struct Clickable {
 }
 
 impl Clickable {
-    pub fn new(name: String, x: f64, y: f64, angle: f64, pixbuf: Pixbuf) -> Self{
+    pub fn new(name: String, x: f64, y: f64, angle: f64, pixbuf: Pixbuf) -> Self {
         Self {
             name,
             x,
@@ -24,7 +24,7 @@ impl Clickable {
             width: pixbuf.width() as f64,
             height: pixbuf.height() as f64,
             angle,
-            pixbuf
+            pixbuf,
         }
     }
 
@@ -36,11 +36,13 @@ impl Clickable {
         mat.invert();
 
         let (dx, dy) = mat.transform_point(x, y);
-        let is_clicked = (dx >= self.x - self.width / 2.0 && dx <= self.x + self.width / 2.0 &&
-                                dy >= self.y - self.height / 2.0 && dy <= self.y + self.height / 2.0);
+        let is_clicked = (dx >= self.x - self.width / 2.0
+            && dx <= self.x + self.width / 2.0
+            && dy >= self.y - self.height / 2.0
+            && dy <= self.y + self.height / 2.0);
         if is_clicked {
             return self.name.clone();
-        } 
+        }
         return "".to_string();
     }
 
@@ -59,11 +61,18 @@ impl Clickable {
     }
 }
 
-
-fn draw_rotated_image(cr: &Context, x: f64, y: f64, width: f64, height: f64, angle: f64, pixbuf: &Pixbuf) {
+fn draw_rotated_image(
+    cr: &Context,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+    angle: f64,
+    pixbuf: &Pixbuf,
+) {
     cr.save();
 
-    cr.translate(x,y);    
+    cr.translate(x, y);
 
     cr.rotate(angle.to_radians());
 

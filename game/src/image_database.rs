@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub struct ImageDatabase {
-    pub image_map: HashMap::<String, gtk::gdk_pixbuf::Pixbuf>,
+    pub image_map: HashMap<String, gtk::gdk_pixbuf::Pixbuf>,
 }
 
 impl Default for ImageDatabase {
@@ -10,7 +10,7 @@ impl Default for ImageDatabase {
         for index in 0..52 {
             let card = common::cards::card_from_index(index);
             let card_name = format!("{}", card);
-            let path = format!("assets/fronts/{}.svg", card_name);
+            let path = format!("game/assets/fronts/{}.svg", card_name);
 
             let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
 
@@ -18,30 +18,29 @@ impl Default for ImageDatabase {
         }
 
         {
-            let path = "assets/backs/abstract_clouds.svg";
+            let path = "game/assets/backs/abstract_clouds.svg";
             let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
 
             images.insert("back_abstract".to_string(), pixbuf);
         }
 
         {
-            let path = "assets/backs/blue.svg";
+            let path = "game/assets/backs/blue.svg";
             let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 200, 400, true).unwrap();
 
             images.insert("back_blue".to_string(), pixbuf);
         }
 
         {
-            let path = "assets/background.jpg";
-            
-            let pixbuf = gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 1200, 800, true).unwrap();
+            let path = "game/assets/background.jpg";
+
+            let pixbuf =
+                gtk::gdk_pixbuf::Pixbuf::from_file_at_scale(path, 1200, 800, true).unwrap();
 
             images.insert("background".to_string(), pixbuf);
         }
 
-        Self {
-            image_map: images,
-        }
+        Self { image_map: images }
     }
 }
 

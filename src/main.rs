@@ -1,4 +1,5 @@
 use clap::{ArgGroup, Parser};
+use game::window::{lobby_window, table_window};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
 
@@ -25,17 +26,23 @@ struct Cli {
 }
 
 fn main() {
-    let Cli {
-        address,
-        client,
-        server,
-    } = Cli::parse();
-    assert_ne!(client, server);
-    let startup = if server {
-        ConStartup::new(2, 0)
-    } else {
-        ConStartup::new(2, 1)
-    };
+    // let Cli {
+    //     address,
+    //     client,
+    //     server,
+    // } = Cli::parse();
+    // assert_ne!(client, server);
+    // let startup = if server {
+    //     ConStartup::new(2, 0)
+    // } else {
+    //     ConStartup::new(2, 1)
+    // };
+
+    let (num_players, player_id) = lobby_window();
+    let address = String::from("127.0.0.1:6700");
+    let startup = ConStartup::new(num_players, player_id);
+    let server: bool = player_id == 0;
+    // table_window();
 
     let other = OtherPlayer::new(startup.initialize(&address));
     let name = if server {

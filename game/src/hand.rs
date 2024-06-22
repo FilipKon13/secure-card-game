@@ -18,10 +18,17 @@ impl Hand {
         for (i, card) in cards.iter().enumerate() {
             let pixbuf = image_database.get_card_image(card.clone());
             let pos_x = 600.0 + offset_x * ((i as f64) - center);
-            let pos_y = 800.0 - (pixbuf.height() as f64) / 2.0 + (f64::abs((i as f64) - center)) * offset_y;
+            let pos_y =
+                800.0 - (pixbuf.height() as f64) / 2.0 + (f64::abs((i as f64) - center)) * offset_y;
             let angle = angle_offset * ((i as f64) - center);
-            
-            clickable_cards.push(Clickable::new(card.to_string(), pos_x, pos_y, angle, pixbuf));
+
+            clickable_cards.push(Clickable::new(
+                card.to_string(),
+                pos_x,
+                pos_y,
+                angle,
+                pixbuf,
+            ));
         }
         Self {
             cards: clickable_cards,
@@ -33,16 +40,14 @@ impl Hand {
             card.draw(drawing_area.clone());
         }
     }
-    
+
     pub fn clicked(&self, x: f64, y: f64) -> String {
         for card in self.cards.iter().rev() {
             let tmp = card.clicked(x, y);
             if tmp != "".to_string() {
                 return tmp;
             }
-
         }
         return "".to_string();
     }
-
 }

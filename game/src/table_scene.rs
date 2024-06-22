@@ -1,5 +1,5 @@
-use gtk::{ApplicationWindow, DrawingArea, EventBox, Image, Inhibit, Overlay};
 use gtk::prelude::{ContainerExt, OverlayExt, WidgetExt};
+use gtk::{ApplicationWindow, DrawingArea, EventBox, Image, Inhibit, Overlay};
 
 use common::cards::Card;
 
@@ -8,7 +8,7 @@ use crate::{hand::Hand, image_database::ImageDatabase, stack::Stack};
 pub struct TableScene {
     pub window: ApplicationWindow,
     pub redraw: bool,
-    pub image_database: ImageDatabase,    
+    pub image_database: ImageDatabase,
 }
 
 impl TableScene {
@@ -27,7 +27,7 @@ impl super::Scene for TableScene {
             for child in self.window.children() {
                 self.window.remove(&child);
             }
-            
+
             // let card = common::cards::card_from_index(15);
             // let card2 = common::cards::card_from_index(40);
             // let clickableCard = Clickable::new(card.to_string(), 100.0, 0.0, 45.0, self.image_database.get_card_image(card));
@@ -60,10 +60,10 @@ impl super::Scene for TableScene {
                 //event box
                 let event_box = EventBox::new();
                 event_box.connect_button_press_event(move |event_box, event| {
-                    let (x,y) = event.position();
-                    let mut clicked = hand.clicked(x,y);
+                    let (x, y) = event.position();
+                    let mut clicked = hand.clicked(x, y);
                     if clicked == "".to_string() {
-                        clicked = stack.clicked(x,y);
+                        clicked = stack.clicked(x, y);
                     }
                     println!("{}", clicked);
                     Inhibit(false)
@@ -74,6 +74,6 @@ impl super::Scene for TableScene {
             self.window.show_all();
 
             self.redraw = false;
-        }    
+        }
     }
 }
