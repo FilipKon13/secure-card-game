@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
@@ -68,11 +68,32 @@ impl Display for PlayingCard {
     }
 }
 
-pub fn card_from_index(ind: usize) -> Card {
-    assert!(ind < 52);
-    Card {
-        suit: unsafe { ::std::mem::transmute((ind / 13) as u8) },
-        rank: unsafe { ::std::mem::transmute((ind % 13 + 2) as u8) },
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseCardError {}
+
+impl Error for ParseCardError {
+    fn description(&self) -> &str {
+        "Provided index does not represent a card"
+    }
+}
+
+impl std::fmt::Display for ParseCardError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[allow(deprecated)]
+        self.description().fmt(f)
+    }
+}
+
+impl TryFrom<usize> for Card {
+    type Error = ParseCardError;
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value >= 52 {
+            return Err(ParseCardError {});
+        }
+        Ok(Card {
+            suit: unsafe { ::std::mem::transmute((value / 13) as u8) },
+            rank: unsafe { ::std::mem::transmute((value % 13 + 2) as u8) },
+        })
     }
 }
 
@@ -83,14 +104,14 @@ mod test {
     #[test]
     fn casting_cards() {
         assert_eq!(
-            card_from_index(0),
+            Card::try_from(0).unwrap(),
             Card {
                 rank: Rank::Two,
                 suit: Suit::Spades
             }
         );
         assert_eq!(
-            card_from_index(34),
+            Card::try_from(34).unwrap(),
             Card {
                 rank: Rank::Ten,
                 suit: Suit::Diamonds
@@ -101,13 +122,13 @@ mod test {
     #[test]
     #[should_panic]
     fn casting_fail() {
-        card_from_index(52);
+        Card::try_from(52).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn casting_fail2() {
-        card_from_index(113);
+        Card::try_from(113).unwrap();
     }
 
     #[test]

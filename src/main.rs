@@ -3,6 +3,7 @@ use game::window::{lobby_window, table_window};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
 
+pub mod moves;
 pub mod player;
 
 #[derive(Parser, Debug)]

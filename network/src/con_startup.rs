@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::connection::Connection;
+use crate::connection::TcpConnection;
 
 pub struct ConStartup {
     player_id: u32,
@@ -34,13 +34,13 @@ impl ConStartup {
         }
     }
 
-    pub fn initialize(&self, address: &String) -> Connection {
+    pub fn initialize(&self, address: &String) -> TcpConnection {
         if self.player_id == 0 {
             let stream = self.start_server(address);
-            Connection::new(stream)
+            TcpConnection::new(stream)
         } else {
             let stream = self.start_client(address);
-            Connection::new(stream)
+            TcpConnection::new(stream)
         }
     }
 }

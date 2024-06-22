@@ -35,7 +35,7 @@ impl super::Scene for TableScene {
 
             let mut hand_cards = Vec::<Card>::new();
             for i in 0..15 {
-                hand_cards.push(common::cards::card_from_index(i));
+                hand_cards.push(common::cards::Card::try_from(i).unwrap());
             }
             let hand = Hand::new(hand_cards, &self.image_database);
             let stack = Stack::new(52, &self.image_database);

@@ -4,7 +4,7 @@ pub mod message;
 
 #[cfg(test)]
 mod test {
-    use super::{con_startup::ConStartup, message::Message};
+    use super::{con_startup::ConStartup, connection::Connection, message::Message};
 
     use std::thread;
 

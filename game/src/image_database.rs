@@ -8,7 +8,7 @@ impl Default for ImageDatabase {
     fn default() -> Self {
         let mut images = HashMap::<String, gtk::gdk_pixbuf::Pixbuf>::new();
         for index in 0..52 {
-            let card = common::cards::card_from_index(index);
+            let card = common::cards::Card::try_from(index).unwrap();
             let card_name = format!("{}", card);
             let path = format!("game/assets/fronts/{}.svg", card_name);
 

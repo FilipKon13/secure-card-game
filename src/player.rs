@@ -1,26 +1,44 @@
 use crypto::encryption::basic_deck;
+use crypto::encryption::Translator;
 use crypto::shuffle::PartyBasic;
 use crypto::types::EncryptedValue;
 use crypto::types::KeyType;
 
 use network::connection::Connection;
+use network::connection::TcpConnection;
 
 pub struct OtherPlayer {
-    pub connection: Connection,
+    connection: TcpConnection,
 }
 
 impl OtherPlayer {
-    pub fn new(conn: Connection) -> Self {
+    pub fn new(conn: TcpConnection) -> Self {
         OtherPlayer { connection: conn }
     }
+}
+
+impl Connection for OtherPlayer {
+    fn send<T: serde::Serialize>(&mut self, message: &T) {
+        self.connection.send(message)
+    }
+    fn receive<T: serde::de::DeserializeOwned>(&mut self) -> T {
+        self.connection.receive()
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Owner {
+    Me,
+    Other(usize),
 }
 
 pub struct Player {
     pub deck: Vec<EncryptedValue>,
     pub keys: Vec<KeyType>,
     pub players: Vec<OtherPlayer>,
-    pub owners: Vec<Option<((), u32)>>,
+    pub owners: Vec<Option<Owner>>,
     pub name: String,
+    pub translator: Translator,
 }
 
 pub struct DeckPreparation {
@@ -46,6 +64,7 @@ impl DeckPreparation {
             players: preparation.players,
             owners: vec![None; len],
             name: preparation.name,
+            translator: Translator::new(&basic_deck()),
         }
     }
     fn prepare_deck_start(
@@ -86,11 +105,9 @@ impl DeckPreparation {
             .receive::<Vec<_>>()
     }
     fn send_deck(&mut self, deck: &Vec<EncryptedValue>) {
-        self.players.last_mut().unwrap().connection.send(&deck);
+        self.players.last_mut().unwrap().send(&deck);
     }
 }
-
-impl Player {}
 
 #[cfg(test)]
 mod test {
