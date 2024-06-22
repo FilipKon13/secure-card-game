@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum Suit {
     Spades = 0,
@@ -9,7 +9,7 @@ pub enum Suit {
     Clubs,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum Rank {
     Two = 2,
@@ -27,10 +27,10 @@ pub enum Rank {
     Ace,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Card {
-    pub suit: Suit,
     pub rank: Rank,
+    pub suit: Suit,
 }
 
 #[derive(Clone, Copy, Debug)]

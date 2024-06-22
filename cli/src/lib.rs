@@ -1,26 +1,27 @@
-use common::{
-    cards::PlayingCard,
-    game::{GameState, ShowHand},
-};
+use std::{fmt::Display, io};
 
-pub fn print_game<PlayerType>(game_state: GameState<PlayerType>)
-where
-    PlayerType: ShowHand,
-{
-    let GameState {
-        main_player,
-        other_players,
-        table_cards,
-    } = game_state;
-    println!("Game State:");
-    println!("Table: {}", format_cards(&table_cards));
-    println!("Hand: {}", format_cards(&main_player.cards()));
-    for (ind, player) in other_players.iter().enumerate() {
-        println!("Player {}: {}", ind, format_cards(&player.cards()));
+use common::game::{CardFromDeck, CardSelector, GamePrinter, GameState};
+
+pub struct CliPrinter {}
+
+impl GamePrinter for CliPrinter {
+    fn print_game(&mut self, game_state: &GameState) {
+        let GameState {
+            hand,
+            table_cards,
+            deck_cards,
+        } = game_state;
+        println!("Game State:");
+        println!("Deck: {}", deck_cards);
+        println!("Table: {}", format_cards(table_cards));
+        println!("Hand: {}", format_cards(hand));
     }
 }
 
-fn format_cards(cards: &[PlayingCard]) -> String {
+fn format_cards<T>(cards: &[T]) -> String
+where
+    T: Display,
+{
     cards
         .iter()
         .map(|f| format!("{}", f))
@@ -28,51 +29,53 @@ fn format_cards(cards: &[PlayingCard]) -> String {
         .join(", ")
 }
 
+pub struct CliSelector {}
+
+impl CardSelector for CliSelector {
+    fn select_card(&mut self, hand: &[CardFromDeck]) -> common::game::CardFromDeck {
+        let mut buffer = String::new();
+        println!("Choose a card");
+        io::stdin().read_line(&mut buffer).unwrap();
+        let index = buffer.trim().parse::<usize>().expect("Wrong index");
+        dbg!(&index);
+        assert!(index < hand.len(), "Wrong index");
+        *hand.get(index).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use common::{
         cards::*,
-        game::{GameState, PlayerBasic},
+        game::{GamePrinter, GameState},
     };
 
-    use crate::print_game;
+    use crate::CliPrinter;
 
     #[test]
     fn it_works() {
-        let hidden_player = PlayerBasic {
-            cards: vec![
-                PlayingCard::Hidden,
-                PlayingCard::Hidden,
-                PlayingCard::Hidden,
-            ],
-        };
         let game = GameState {
-            main_player: PlayerBasic {
-                cards: vec![
-                    PlayingCard::Up(Card {
-                        suit: Suit::Clubs,
-                        rank: Rank::Ace,
-                    }),
-                    PlayingCard::Up(Card {
-                        suit: Suit::Diamonds,
-                        rank: Rank::Ten,
-                    }),
-                    PlayingCard::Up(Card {
-                        suit: Suit::Hearths,
-                        rank: Rank::King,
-                    }),
-                ],
-            },
-            other_players: vec![hidden_player.clone(), hidden_player.clone()],
-            table_cards: vec![
-                PlayingCard::Hidden,
-                PlayingCard::Hidden,
-                PlayingCard::Up(Card {
+            hand: vec![
+                Card {
                     suit: Suit::Clubs,
-                    rank: Rank::Six,
-                }),
+                    rank: Rank::Ace,
+                },
+                Card {
+                    suit: Suit::Diamonds,
+                    rank: Rank::Ten,
+                },
+                Card {
+                    suit: Suit::Hearths,
+                    rank: Rank::King,
+                },
             ],
+            table_cards: vec![Card {
+                suit: Suit::Clubs,
+                rank: Rank::Six,
+            }],
+            deck_cards: 48,
         };
-        print_game(game);
+        let mut printer = CliPrinter {};
+        printer.print_game(&game);
     }
 }

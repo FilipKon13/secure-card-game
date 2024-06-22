@@ -19,6 +19,19 @@ pub fn basic_deck() -> [EncryptedValue; 52] {
     })
 }
 
+pub fn short_deck() -> [EncryptedValue; 16] {
+    let g = EncryptedValueType::generator();
+    let mut res = [EncryptedValue::new(g); 16];
+    for i in 0..4 {
+        for j in 9..13 {
+            let ind = i * 13 + j;
+            *res.get_mut(i * 4 + j - 9).unwrap() =
+                EncryptedValue::new(g * KeyType::from(ind as i64).val);
+        }
+    }
+    res
+}
+
 impl Translator {
     pub fn new(deck: &[EncryptedValue; 52]) -> Self {
         Translator { cards: *deck }

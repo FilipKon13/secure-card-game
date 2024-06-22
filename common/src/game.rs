@@ -1,24 +1,29 @@
-use crate::cards::PlayingCard;
+use crate::cards::Card;
 pub trait ShowHand {
-    fn cards(&self) -> &Vec<PlayingCard>;
+    fn show_hand(&self) -> Vec<CardFromDeck>;
 }
 
-pub struct GameState<PlayerType>
-where
-    PlayerType: ShowHand,
-{
-    pub main_player: PlayerType,
-    pub other_players: Vec<PlayerType>,
-    pub table_cards: Vec<PlayingCard>,
+pub struct GameState {
+    pub hand: Vec<Card>,
+    pub table_cards: Vec<Card>,
+    pub deck_cards: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct PlayerBasic {
-    pub cards: Vec<PlayingCard>,
+    pub cards: Vec<Card>,
 }
 
-impl ShowHand for PlayerBasic {
-    fn cards(&self) -> &Vec<PlayingCard> {
-        &self.cards
-    }
+pub trait GamePrinter {
+    fn print_game(&mut self, game_state: &GameState);
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct CardFromDeck {
+    pub card: Card,
+    pub ind: usize,
+}
+
+pub trait CardSelector {
+    fn select_card(&mut self, hand: &[CardFromDeck]) -> CardFromDeck;
 }

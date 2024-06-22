@@ -1,3 +1,5 @@
+use common::game::CardFromDeck;
+use common::game::ShowHand;
 use crypto::encryption::basic_deck;
 use crypto::encryption::Translator;
 use crypto::shuffle::PartyBasic;
@@ -28,8 +30,9 @@ impl Connection for OtherPlayer {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Owner {
-    Me,
+    Me(CardFromDeck),
     Other(usize),
+    Player(CardFromDeck),
 }
 
 pub struct Player {
@@ -47,17 +50,22 @@ pub struct DeckPreparation {
 }
 
 impl DeckPreparation {
-    pub fn prepare(name: String, others: Vec<OtherPlayer>, start: bool) -> Player {
+    pub fn prepare(
+        name: String,
+        others: Vec<OtherPlayer>,
+        start: bool,
+        deck: Vec<EncryptedValue>,
+    ) -> Player {
         let mut preparation = DeckPreparation {
             players: others,
             name,
         };
         let (deck, keys) = if start {
-            preparation.prepare_deck_start(basic_deck().to_vec())
+            preparation.prepare_deck_start(deck)
         } else {
             preparation.prepare_deck_join()
         };
-        let len = preparation.players.len();
+        let len = deck.len();
         Player {
             deck,
             keys,
@@ -109,6 +117,21 @@ impl DeckPreparation {
     }
 }
 
+impl ShowHand for Player {
+    fn show_hand(&self) -> Vec<CardFromDeck> {
+        self.owners
+            .iter()
+            .filter_map(|&owner| match owner {
+                Some(o) => match o {
+                    Owner::Me(card) => Some(card),
+                    _ => None,
+                },
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+}
+
 #[cfg(test)]
 mod test {
     const ADDRESS: &str = "localhost:1234";
@@ -124,14 +147,24 @@ mod test {
         let t1 = thread::spawn(|| {
             let startup = ConStartup::new(2, 0);
             let opponent = OtherPlayer::new(startup.initialize(&ADDRESS.to_string()));
-            let player_1 = DeckPreparation::prepare("P1".to_string(), vec![opponent], true);
+            let player_1 = DeckPreparation::prepare(
+                "P1".to_string(),
+                vec![opponent],
+                true,
+                basic_deck().to_vec(),
+            );
             println!("DONE {}", player_1.name);
             (player_1.deck, player_1.keys)
         });
         let t2 = thread::spawn(|| {
             let startup = ConStartup::new(2, 1);
             let opponent = OtherPlayer::new(startup.initialize(&ADDRESS.to_string()));
-            let player_2 = DeckPreparation::prepare("P2".to_string(), vec![opponent], false);
+            let player_2 = DeckPreparation::prepare(
+                "P2".to_string(),
+                vec![opponent],
+                false,
+                basic_deck().to_vec(),
+            );
             println!("DONE {}", player_2.name);
             (player_2.deck, player_2.keys)
         });

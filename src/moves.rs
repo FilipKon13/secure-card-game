@@ -1,4 +1,4 @@
-use common::cards::Card;
+use common::{cards::Card, game::CardFromDeck};
 use crypto::{encryption::decrypt, types::KeyType};
 use network::connection::Connection;
 
@@ -36,8 +36,9 @@ impl Moves for Player {
             .translate(decrypted_card)
             .expect("Other player did not provide right key");
 
-        *self.owners.get_mut(ind).unwrap() = Some(Owner::Me);
-        Card::try_from(card).unwrap()
+        let card = Card::try_from(card).unwrap();
+        *self.owners.get_mut(ind).unwrap() = Some(Owner::Me(CardFromDeck { card, ind }));
+        card
     }
 
     fn let_draw_from_deck(&mut self, other: usize) {
@@ -57,6 +58,13 @@ impl Moves for Player {
         self.players
             .iter_mut()
             .for_each(|o| o.send(&(ind, self.keys.get(ind).unwrap())));
+        *self.owners.get_mut(ind).unwrap() = match *self.owners.get(ind).unwrap() {
+            Some(o) => match o {
+                Owner::Me(card) => Some(Owner::Player(card)),
+                _ => panic!("Player is not owner of this card"),
+            },
+            _ => panic!("Player is not owner of this card"),
+        };
     }
 
     // works only for two player game atm
@@ -69,8 +77,8 @@ impl Moves for Player {
             .expect("Wrong index")
             .expect("Player is not owner of this card")
         {
-            Owner::Me => panic!("Player is not owner of this card"),
             Owner::Other(owner) => assert_eq!(owner, other, "Player is not owner of this card"),
+            _ => panic!("Player is not owner of this card"),
         };
         let decrypted_card = decrypt(
             decrypt(*self.deck.get(ind).unwrap(), key),

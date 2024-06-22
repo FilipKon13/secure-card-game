@@ -1,10 +1,14 @@
 use clap::{ArgGroup, Parser};
+use cli::{CliPrinter, CliSelector};
+use crypto::encryption::{basic_deck, short_deck};
 use game::window::{lobby_window, table_window};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
+use simple_game::SimpleGame;
 
 pub mod moves;
 pub mod player;
+pub mod simple_game;
 
 #[derive(Parser, Debug)]
 #[clap(group(
@@ -27,22 +31,21 @@ struct Cli {
 }
 
 fn main() {
-    // let Cli {
-    //     address,
-    //     client,
-    //     server,
-    // } = Cli::parse();
-    // assert_ne!(client, server);
-    // let startup = if server {
-    //     ConStartup::new(2, 0)
-    // } else {
-    //     ConStartup::new(2, 1)
-    // };
+    let Cli {
+        address,
+        client,
+        server,
+    } = Cli::parse();
+    assert_ne!(client, server);
+    let num_players = 2u32;
+    let player_id = if server { 0u32 } else { 1u32 };
 
-    let (num_players, player_id) = lobby_window();
-    let address = String::from("127.0.0.1:6700");
+    // let (num_players, player_id) = lobby_window();
+
     let startup = ConStartup::new(num_players, player_id);
-    let server: bool = player_id == 0;
+
+    // let address = String::from("127.0.0.1:6700");
+    // let server: bool = player_id == 0;
     // table_window();
 
     let other = OtherPlayer::new(startup.initialize(&address));
@@ -52,8 +55,25 @@ fn main() {
         "client".to_string()
     };
     println!("Preparation start");
-    DeckPreparation::prepare(name, vec![other], server);
+    let player = DeckPreparation::prepare(name, vec![other], server, short_deck().to_vec());
     println!("Preparation completed");
+
+    println!("Player deck size: {}", player.deck.len());
+
+    let game = SimpleGame::new(
+        player_id as usize,
+        num_players as usize,
+        player,
+        CliPrinter {},
+        CliSelector {},
+    );
+
+    println!("Starting game");
+
+    let (score, scores) = game.play();
+
+    println!("Your score: {}", score);
+    println!("Others: {:?}", scores);
 
     println!("DONE");
 }
