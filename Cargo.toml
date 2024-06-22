@@ -14,6 +14,8 @@ game = { path = "./game", package = "game" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 cli = { path = "cli", package = "cli-scg" }
+gtk = "0.16"
+glib = "0.16"
 
 [workspace]
 members = [ "cli", "common" , "crypto", "game", "network"]

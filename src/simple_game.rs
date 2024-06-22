@@ -211,6 +211,12 @@ where
             Turn::Done() => unreachable!("Game is done"),
         }
     }
+    
+    pub fn play_one_step(&mut self) {
+        if !self.is_done() {
+            self.make_turn();
+        }
+    }
 
     pub fn play(mut self) -> (usize, Vec<usize>) {
         while !self.is_done() {

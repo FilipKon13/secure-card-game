@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use gtk::prelude::{ContainerExt, OverlayExt, WidgetExt};
 use gtk::{ApplicationWindow, DrawingArea, EventBox, Image, Inhibit, Overlay};
 
@@ -9,6 +12,7 @@ pub struct TableScene {
     pub window: ApplicationWindow,
     pub redraw: bool,
     pub image_database: ImageDatabase,
+    pub hand_cards: Vec::<Card>,
 }
 
 impl TableScene {
@@ -17,6 +21,7 @@ impl TableScene {
             window,
             redraw: true,
             image_database: ImageDatabase::default(),
+            hand_cards: Vec::<Card>::new(),
         }
     }
 }
@@ -33,11 +38,11 @@ impl super::Scene for TableScene {
             // let clickableCard = Clickable::new(card.to_string(), 100.0, 0.0, 45.0, self.image_database.get_card_image(card));
             // let clickableCard2 = Clickable::new(card2.to_string(), 100.0, 300.0, 45.0, self.image_database.get_card_image(card2));
 
-            let mut hand_cards = Vec::<Card>::new();
-            for i in 0..15 {
-                hand_cards.push(common::cards::Card::try_from(i).unwrap());
-            }
-            let hand = Hand::new(hand_cards, &self.image_database);
+            // let mut hand_cards = Vec::<Card>::new();
+            // for i in 0..15 {
+            //     hand_cards.push(common::cards::Card::try_from(i).unwrap());
+            // }
+            let hand = Hand::new(&self.hand_cards, &self.image_database);
             let stack = Stack::new(52, &self.image_database);
 
             let overlay = Overlay::new();

@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use gtk::ApplicationWindow;
 
-use crate::{lobby_scene, table_scene, Scene};
+use crate::{lobby_scene, table_scene, gui_printer::GuiPrinter, Scene};
 
 pub struct Data {
     pub num_players: u32,
@@ -35,14 +35,16 @@ impl SceneUpdate for GameStateLobby {
 
 pub struct GameStateTable {
     window: ApplicationWindow,
-    current_scene: Box<dyn Scene>,
+    current_scene: Box<Rc<RefCell<dyn Scene>>>,
 }
 
 impl GameStateTable {
-    pub fn new(window: ApplicationWindow) -> Self {
+    pub fn new(window: ApplicationWindow, printer: Rc<RefCell<GuiPrinter>>) -> Self {
+        let tt = Rc::new(RefCell::new(table_scene::TableScene::new(window.clone())));
+        printer.borrow_mut().table = Some(tt.clone());
         Self {
             window: window.clone(),
-            current_scene: Box::new(table_scene::TableScene::new(window.clone())),
+            current_scene: Box::new(tt.clone()),
         }
     }
 
@@ -53,6 +55,6 @@ impl GameStateTable {
 
 impl SceneUpdate for GameStateTable {
     fn update(&mut self) {
-        self.current_scene.update();
+        self.current_scene.borrow_mut().update();
     }
 }

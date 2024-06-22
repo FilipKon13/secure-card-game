@@ -3,14 +3,15 @@ use std::{cell::RefCell, rc::Rc};
 use clap::{ArgGroup, Parser};
 use cli::{CliPrinter, CliSelector};
 use crypto::encryption::{basic_deck, short_deck};
-use game::window::{lobby_window, table_window, GuiPrinter, GuiPrinterWrap};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, OtherPlayer};
 use simple_game::SimpleGame;
+use window::{lobby_window, table_window};
 
 pub mod moves;
 pub mod player;
 pub mod simple_game;
+pub mod window;
 
 #[derive(Parser, Debug)]
 #[clap(group(
@@ -48,37 +49,39 @@ fn main() {
     let startup = ConStartup::new(num_players, player_id);
     let server: bool = player_id == 0;
 
-    let printer = Rc::new(RefCell::new(GuiPrinter {}));
-    table_window(printer.clone());
+    // let printer = Rc::new(RefCell::new(GuiPrinter {}));
+    table_window(num_players, player_id);
 
-    let other = OtherPlayer::new(startup.initialize(&address));
-    let name = if server {
-        "server".to_string()
-    } else {
-        "client".to_string()
-    };
-    println!("Preparation start");
-    let player = DeckPreparation::prepare(name, vec![other], server, short_deck().to_vec());
-    println!("Preparation completed");
+    // let other = OtherPlayer::new(startup.initialize(&address));
+    // let name = if server {
+    //     "server".to_string()
+    // } else {
+    //     "client".to_string()
+    // };
+    // println!("Preparation start");
+    // let player = DeckPreparation::prepare(name, vec![other], server, short_deck().to_vec());
+    // println!("Preparation completed");
 
-    println!("Player deck size: {}", player.deck.len());
+    // println!("Player deck size: {}", player.deck.len());
 
-    let game = SimpleGame::new(
-        player_id as usize,
-        num_players as usize,
-        player,
-        GuiPrinterWrap {
-            gui_printer: printer.clone(),
-        },
-        CliSelector {},
-    );
+    // let game = SimpleGame::new(
+    //     player_id as usize,
+    //     num_players as usize,
+    //     player,
+    //     GuiPrinterWrap {
+    //         gui_printer: printer.clone(),
+    //     },
+    //     CliSelector {},
+    // );
 
-    println!("Starting game");
+    // println!("Starting game");
 
-    let (score, scores) = game.play();
+    // let (score, scores) = game.play();
 
-    println!("Your score: {}", score);
-    println!("Others: {:?}", scores);
+    // println!("Your score: {}", score);
+    // println!("Others: {:?}", scores);
 
-    println!("DONE");
+    // println!("DONE");
+
+    
 }

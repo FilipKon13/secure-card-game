@@ -979,6 +979,8 @@ dependencies = [
  "common-scg",
  "crypto-scg",
  "game",
+ "glib",
+ "gtk",
  "network",
  "serde",
  "serde_json",
