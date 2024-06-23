@@ -65,8 +65,7 @@ fn main() {
 
     let (score, scores) = game.play();
 
+    println!("");
     println!("Your score: {}", score);
-    println!("Others: {:?}", scores);
-
-    println!("DONE");
+    println!("Opponent's score: {:?}", scores.get(0).unwrap());
 }
