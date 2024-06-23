@@ -91,12 +91,29 @@ impl<'de> Deserialize<'de> for KeyType {
 mod test {
     use ark_std::test_rng;
 
+    use crate::encryption::encrypt;
+
     use super::KeyType;
     use super::ScalarField;
     use super::{EncryptedValue, EncryptedValueType};
     use ark_ec::Group;
     use ark_std::UniformRand;
     use ark_std::Zero;
+
+    #[test]
+    fn test_eq() {
+        let mut rng = test_rng();
+        let g = EncryptedValue::new(EncryptedValueType::rand(&mut rng));
+        let s1 = KeyType::rand(&mut rng);
+        let s2 = KeyType::rand(&mut rng);
+        let mut g1 = encrypt(g, s1);
+        let mut g2 = encrypt(g, s2);
+        g1 = encrypt(g1, s2);
+        g2 = encrypt(g2, s1);
+        let ser1 = serde_json::to_string(&g1).unwrap();
+        let ser2 = serde_json::to_string(&g2).unwrap();
+        assert_eq!(ser1, ser2);
+    }
 
     #[test]
     fn group_serialize_deserialize_gen() {
