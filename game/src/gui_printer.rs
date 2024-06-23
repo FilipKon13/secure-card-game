@@ -3,10 +3,7 @@ use std::fmt::Display;
 use std::rc::Rc;
 
 use common::game::{GamePrinter, GameState};
-use gtk::prelude::*;
-use gtk::{Application, ApplicationWindow};
 
-use crate::game_state::{Data, GameStateLobby, GameStateTable, SceneUpdate};
 use crate::table_scene::TableScene;
 
 pub struct GuiPrinter {

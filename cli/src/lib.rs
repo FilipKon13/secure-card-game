@@ -1,4 +1,4 @@
-use std::{fmt::Display, io, thread, time};
+use std::{fmt::Display, io};
 
 use common::game::{CardFromDeck, CardSelector, GamePrinter, GameState};
 
@@ -35,15 +35,8 @@ impl CardSelector for CliSelector {
     fn select_card(&mut self, hand: &[CardFromDeck]) -> common::game::CardFromDeck {
         let mut buffer = String::new();
         println!("Choose a card");
-        // io::stdin().read_line(&mut buffer).unwrap();
-        let index = 0;
-
-        // let ten_millis = time::Duration::from_millis(5000);
-        // let now = time::Instant::now();
-
-        // thread::sleep(ten_millis);
-
-        // let index = buffer.trim().parse::<usize>().expect("Wrong index");
+        io::stdin().read_line(&mut buffer).unwrap();
+        let index = buffer.trim().parse::<usize>().expect("Wrong index");
         dbg!(&index);
         assert!(index < hand.len(), "Wrong index");
         *hand.get(index).unwrap()

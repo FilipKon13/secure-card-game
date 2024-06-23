@@ -68,7 +68,6 @@ impl super::Scene for LobbyScene {
             btn.connect_clicked(move |_| {
                 let num_players: u32 = num_players_input.text().as_str().parse().unwrap();
                 let player_id: u32 = player_id_input.text().as_str().parse().unwrap();
-                println!("clicked, {} {}", num_players, player_id);
                 data_clone.borrow_mut().num_players = num_players;
                 data_clone.borrow_mut().player_id = player_id;
 
