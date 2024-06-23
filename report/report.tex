@@ -89,8 +89,73 @@ W celu naprawienia tej luki, na końcu gry wszyscy ujawniają swoje klucze i des
 
 Aby poprawić wspomniane aspekty, druga wersja protokołu narzuca na graczy dostarczenie zero\-knowledge dowodów, że poprawnie wykonali wszystkie kroki.
 
+Będziemy potrzebować trzech pomocniczych podprotokołów będących wariacjami podpisu Schnorra. Poniżej stosujemy konwencję, gdzie $Hash(\ldots || X_i || \ldots) = Hash(\ldots || X_1 || \ldots || X_n || \ldots)$.
+\\
+
+\noindent \textbf{Masking} Gracz ma dane publiczny punkt $P$ oraz prywatny klucz $x$. Publikuje on $P'$ i chce udowodnić $P' = xP$.
+\\
+
+\noindent Losuje on $r$ i liczy $R = rP$, $e = Hash(R || P || P')$ (challenge) i $s = r - xe$ (dowód). Publikuje $(e,s)$. 
+\\
+
+\noindent Weryfikacja polega na policzeniu $R^v = sP + eP'$ i sprawdzeniu czy $e = Hash(R^v || P || P')$. Warto zauważyć, że jest to w zasadzie dokładnie podpis Schnorra.
+\\
+
+\noindent \textbf{Multimasking}
+Gracz ma dane publiczne punkty $(P_1,P_2,\ldots,P_n)$ oraz prywatny klucz $x$. Publikuje $(P_1',P_2',\ldots,P_n')$ i chce udowodnić, że $P_i'=xP_i$.
+\\
+
+\noindent Losuje on $r$ i liczy $R_i = rP_i$, $e = Hash(R_i^v || P_i || P_i')$ (challenge) i $s = r - xe$ (dowód). Publikuje $(e,s)$.
+\\
+
+\noindent Weryfikacja polega na policzeniu $R_i^v = sP_i + eP_i'$ i sprawdzeniu czy $e = Hash(R_i^v || P_i || P_i')$.
+\\
 
 
+\noindent \textbf{1-in-2} Gracz ma dane punkty $A,B$ oraz prywatny klucz $x$. Publikuje on $P$ i chce udowodnić, że $P = xA$ lub $P=xB$, bez ujawiania, który przypadek zachodzi.
+\\
+
+\noindent Opiszemy protokół dla przypadku $P = xA$.
+\noindent \begin{enumerate}
+    \item Losuje $r$ i liczy $R_a = rA$, $e_b = Hash(R_a || P || A || B)$,
+    \item Losuje $s_b$ i liczy $R_b = e_bP + s_bB$,
+    \item Liczy $e_a = Hash(R_b || P || A || B)$,
+    \item Liczy $s_a = r - e_ax$,
+    \item Zwraca $(e_a,e_b,s_a,s_b)$.
+\end{enumerate}
+
+\noindent Weryfikacja polega na policzeniu $R_a^v = s_aA + e_aP$ oraz $R_b^v = s_bB + e_bP$ i sprawdzeniu czy $e_a = Hash(R_b^v || P || A || B)$ oraz $e_b = Hash(R_a^v || P || A || B)$.
+\\
+
+\noindent \textbf{1-in-2} Gracz ma dane punkty $A,B$ oraz prywatny klucz $x$. Publikuje on $(C,D)$ i chce udowodnić, że $(C,D) = (xA,xB)$ lub $(C,D) = (xB,xA)$ bez ujawiania, który przypadek zachodzi.
+\\
+
+\noindent Wystarczy dwukrotnie zastosować protokół 1-in-2.
+\\
+
+
+Korzystając z protokołów swap oraz multimaskingu można udowodnić, że rzeczywiście pooprawnie wykonało się krok 1 poprzedniego protokołu. Można to osiągnąć poprzez użycie sieci sortującej na odwrót tzn. sieć sortująca jest w stanie posortować dowolną permutację za pomocą statycznego ciągu komparatorów. Przechodząc przez nią na odwrót i używając protokołu swap dla każdego komparatora jesteśmy w stanie dotrzeć do dowolnej permutacji.
+
+
+Takie podejście daje algorytm wysyłający $\log{n}^2$ razy liniowo wiele punktów i skalarów. Dla $n = 52$ logarytm z $n$ jest względnie duży ($\log{n}^2 > n$). Nawet użycie najlepszej znanej sieci sortującej dla $n=52$ daje nam 19 warstw sieci, co daje prawie tysiąc skalarów i punktów do wysłania. Zamiast tego zdecydowaliśmy się użyć rozszerzonej wersji protokołu 1-in-2, mianowicie 1-in-$n$, którego $n$-krotna aplikacja (jak w swap) pozwoli nam udowodnić cały shuffle za jednym zamachem wysyłając liniowo wiele punktów i kwadratowo wiele skalarów.
+\\
+
+\noindent \textbf{1-in-$n$} Gracz ma dane punkty $P_1,P_2,\ldots,P_n$ oraz prywatny klucz $x$. Publikuje on $P$ i chce udowodnić, że $P = xP_i$ dla pewnego $i$, bez ujawiania wybranego $i$.
+\\
+
+\noindent Opiszemy protokół dla $P = xP_1$
+\noindent \begin{enumerate}
+    \item Losuje $r$ i liczy $R_1 = rP_1, e_2 = Hash(R_1 || P || P_i)$,
+    \item Losuje $s_2$ i liczy $R_2 = e_2P + s_2P_2$,
+    \item Liczy $e_3 = Hash(R_2 || P || P_i)$,
+    \item Losuje $s_3$ i liczy $R_3 = e_3P + s_3P_3$,
+    \item $\ldots$
+    \item Liczy $e_1 = Hash(R_n || P || P_i)$,
+    \item Liczy $s_1 = r - e_1x$,
+    \item Zwraca $(e_1,\ldots,e_n,s_1,\ldots,s_n)$,
+\end{enumerate}
+
+\noindent Weryfikacja polega na policzeniu $R_i^v = e_iP + s_iP_i$ i sprawdzeniu $e_i = Hash(R_i^v || P || P_j)$.
 
 \subsubsection{Ciągnięcie z talii}
 
