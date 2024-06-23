@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{amssymb}
+\usepackage{amsmath,amsthm}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{tikz}
+\usepackage{geometry}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=false,
+    linktoc=all,
+}
+\newgeometry{tmargin=3cm, bmargin=3cm, lmargin=3cm, rmargin=3cm}
+
+\title{Secure Card Game}
+\author{Jan Klimczak \\ Filip Konieczny \\ Rafał Pyzik}
+\date{24.06.2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Opis projektu}
+
+Celem projektu jest implementacja podstawowych funkcjonalności związanych ze wszelkiego rodzaju grami z ustaloną talią kart, takimi jak
+\begin{enumerate}
+    \item Tasowanie talii kart
+    \item Rozdawanie kart
+    \item Branie karty ze stosu
+    \item Zagranie karty
+\end{enumerate}
+
+Oczywiście chcemy, aby wszystkie funkcjonalności były kryptograficznie bezpieczne, co, między innymi,  implikuje, że nikt nie może ustalić kolejności kart w talii oraz by nikt nie informacji ponad to, co wydarzyło się w grze i własnych kart.  
+
+Powyższe funkcjonalności zaprezentowane są na przykładzie prostej gry przypominającej wojnę. Przebieg rozgrywki jest następujący:
+
+\begin{enumerate}
+    \item Talia jest tasowana
+    \item Każdy z graczy ciągnie z talii 5 kart
+    \item Gracze kolejno rzucają karty na stół
+    \item Wygrywa karta, która ma najwyższą wartość wśród wszystkich kart w kolorze pierwszej rzuconej karty (wartości kart są standardowe 2, 3, \ldots, 10, J, Q, K, A)
+    \item Gracz którego karta wygrała zdobywa punkt i będzie zaczynał następną turę
+    \item Jeśli stos kart jest niepusty, każdy ciągnie kartę, zaczynając od osoby, którego karta wygrała
+\end{enumerate}
+
+
+\section{Kryptografia}
+
+Karty są reprezentowane jako punkty na krzywej eliptycznej. Niech $G$ to generator grupy na której pracujemy. Wtedy karty to $C = \{G,2G,\ldots,52G\}$, gdzie stosujemy notację addytywną. W wyniku procesu tasowania każdy z graczy zaszyfruje karty swoim kluczem prywatnym, w wyniku czego karta to $x_1x_2\ldots c$, gdzie $c \in C$, a $x_i$ to klucze prywatne graczy (będące skalarami).
+
+Oprócz standardowego założenia, że CDH jest trudny na naszej krzywej eliptycznej, dodatkowo zakładamy to także o decyzyjnej wersji. W szczególności, użyta w protokole krzywa eliptyczna nie może wspierać dwuliniowego parowania.
+
+\subsection{Protokoły}
+\subsubsection{Tasowanie}
+
+Tasowanie to najbardziej skomplikowany z użytych protokołów. Wysokopoziomowo, każdy z graczy aplikuje do talii wybraną przez siebie permutację. Widzimy, że jeśli gracz nie jest w stanie poznać permutacji innego gracza, to gracz nie jest w stanie poznać końcowej permutacji talii (lepiej niż zgadując).
+
+
+Potasowana talia to ciąg $(x_1^1x_2^1\ldots c_1, x_1^2,x_2^2\ldots c_2, \ldots, x_1^kx_2^k\ldots c_k)$.
+
+Zaimplementowaliśmy dwa protokoły. Zacznijmy od opisu prostszego:
+
+\begin{enumerate}
+    \item Gracz $A$ wybiera klucz prywatny $A$ i zaszyfrowuje każdą kartę za pomocą $A$, a następnie tasuje talię. Każda karta jest postaci $Ac$, gdzie $c \in C$,
+
+    \item Kolejni gracze robią to samo,
+
+    \item Gracz $A$ wybiera $52$ klucze prywatne. Następnie ściąga szyfrowanie kluczem $A$ i szyfruje kolejne karty kolejnymi kluczami. Każda karta jest postaci $x_1^iB\ldots c_i$,
+
+    \item Kolejni gracze robią to samo.
+\end{enumerate}
+
+Na końcu każdy z graczy ma ciąg $(x_1^1x_2^1\ldots c_1, x_1^2,x_2^2\ldots c_2, \ldots, x_1^kx_2^k\ldots c_k)$, gdzie $c_i$ jest permutacją zbioru $C$.
+
+Protokół ten wymaga założenia o trudności DDH ze względu na pierwszy krok. Gracz drugi otrzymuje $Ai\cdot G$ dla $i\in \{1,\ldots,52\}$, więc w szczególności wśród otrzymanych kart są $AG$ oraz $A2G$. Może on przetestować wszystkie pary kart $x,y$ czy trójka $(x,2G,y)$ jest trójką DH, co daje mu kandydatów na odpowiednie karty. W podobny sposób może on odtworzyć całą permutację zastosowaną przez poprzednią osobę.
+
+Jednak nawet z założeniem DDH protokół ma parę problemów. Gracz może łatwo oszukać w kroku 3 duplikując karty. Zamiast zaszyfrować swoimi kluczami otrzymane karty, to zastępuje niektóre karty z talii inną otrzymaną kartą (np. zamiast zwrócić $x_1a,x_2b,x_3c$ to zwraca $x_1a,x_2a,x_3c$).
+
+Jeśli zrobi to gracz pierwszy, to protokół się nie zakończy się błędem: inni gracze nie zauważą ingerencji, ich klucze prywatne z kroku 2 będą wciąż działać jak powinny, podobnie jak klucze z kroku 4 (bo jeszcze ich nie zaaplikowali). Zaskutkuje to tym, że w pewnym momencie w trakcie gry jedna karta może pojawić się wielokrotnie.
+
+W celu naprawienia tej luki, na końcu gry wszyscy ujawniają swoje klucze i deszyfrowana jest cała talia by upewnić się, że jest permutacją zbioru $C$.
+
+Aby poprawić wspomniane aspekty, druga wersja protokołu narzuca na graczy dostarczenie zero\-knowledge dowodów, że poprawnie wykonali wszystkie kroki.
+
+
+
+
+\subsubsection{Ciągnięcie z talii}
+
+Gracz ogłasza, że chce pociągnąć kartę z talii. Reszta weryfikuje, że ma on do tego prawo, a następnie publikuje swoje klucze prywatne związane z kartą na szczycie stosu. Gracz następnie może użyć wspomniane klucze prywatne oraz swój własny do poznania wartości karty.
+
+Rozdawanie kart to wielokrotne zaaplikowanie tego protokołu.
+
+\subsubsection{Zagrywanie karty}
+
+Gracz ogłasza, którą kartę chce zagrać, a następnie publikuje swój klucz prywatny. Pozostałe klucze zostały już ujawnione, więc tożsamość karty staje się publiczna.
+
+\section{Implementacja i struktura projektu}
+
+Do części kryptograficznej użyliśmy implementacji krzywych eliptycznych z crate'a z rodziny \texttt{arkworks}, a konkretnie krzywej Pallas. Poza tym protokoły zaimplementowane zostały ,,ręcznie''.
+
+Rozgrywka jak i protokoły zaimplementowane zostały jako automat skończony.
+
+GUI zaimplementowane zostało we framework'u \texttt{gtk}.
+
+
+
+
+\end{document}
