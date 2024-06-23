@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, io};
 use std::fmt::Display;
 use std::rc::Rc;
 
@@ -16,7 +16,7 @@ pub struct GuiPrinterWrap {
 }
 
 impl GamePrinter for GuiPrinter {
-    fn print_game(&mut self, game_state: &GameState) {
+    fn print_game(&mut self, game_state: &GameState) -> io::Result<()> {
         let GameState {
             hand,
             table_cards,
@@ -27,12 +27,13 @@ impl GamePrinter for GuiPrinter {
         println!("Deck: {}", deck_cards);
         println!("Table: {}", format_cards(table_cards));
         println!("Hand: {}", format_cards(hand));
+        Ok(())
     }
 }
 
 impl GamePrinter for GuiPrinterWrap {
-    fn print_game(&mut self, game_state: &GameState) {
-        self.gui_printer.borrow_mut().print_game(game_state);
+    fn print_game(&mut self, game_state: &GameState) -> io::Result<()> {
+        self.gui_printer.borrow_mut().print_game(game_state)
     }
 }
 

@@ -86,9 +86,9 @@ impl DeckPreparation {
                 deck = self.get_deck();
             }
             start = false;
-            dbg!((&party.state, &self.name));
+            // dbg!((&party.state, &self.name));
             party.make_turn(&mut deck);
-            dbg!((&party.state, &self.name));
+            // dbg!((&party.state, &self.name));
             self.send_deck(&deck);
         }
         self.get_deck(); // wait for the rest
@@ -98,9 +98,9 @@ impl DeckPreparation {
         let mut party = PartyBasic::new();
         while !party.is_done() {
             let mut deck = self.get_deck();
-            dbg!((&party.state, &self.name));
+            // dbg!((&party.state, &self.name));
             party.make_turn(&mut deck);
-            dbg!((&party.state, &self.name));
+            // dbg!((&party.state, &self.name));
             self.send_deck(&deck);
         }
         party.retrieve_deck()

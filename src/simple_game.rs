@@ -163,8 +163,8 @@ where
     }
 
     fn make_turn(&mut self) {
-        dbg!(&self.turn);
-        self.printer.print_game(&GameState {
+        // dbg!(&self.turn);
+        let _ = self.printer.print_game(&GameState {
             hand: self.player.show_hand().iter().map(|f| f.card).collect(),
             table_cards: self.game_and_table.get_table_cards(),
             deck_cards: self.deck_size(),

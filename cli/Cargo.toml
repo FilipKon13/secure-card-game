@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 common = { path = "../common", package = "common-scg" }
+crossterm = "0.27.0"
