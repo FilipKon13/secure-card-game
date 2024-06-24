@@ -18,13 +18,6 @@ jobs:
     name: Run check, test and lints
     runs-on: ubuntu-latest
     steps:
-      - name: Skip
-        shell: bash
-        run: echo Done
-
-    name: Run check, test and lints
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
