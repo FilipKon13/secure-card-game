@@ -12,6 +12,7 @@ use crypto::types::KeyType;
 use network::connection::Connection;
 use network::connection::TcpConnection;
 
+use rand::prelude::SliceRandom;
 use rand::thread_rng;
 
 pub struct OtherPlayer {
@@ -175,6 +176,7 @@ impl DeckPreparationVerification {
         for i in 0..n {
             *perm.get_mut(i).unwrap() = i;
         }
+        perm.shuffle(&mut rng);
         let shuffle_proof = ShuffleWithProof::generate(deck, &p_key, &perm, &mut rng);
         self.players.get_mut(0).unwrap().send(&shuffle_proof);
         let other_shuffle_proof = self
@@ -222,6 +224,7 @@ impl DeckPreparationVerification {
         for i in 0..n {
             *perm.get_mut(i).unwrap() = i;
         }
+        perm.shuffle(&mut rng);
         let shuffle_proof = ShuffleWithProof::generate(
             other_shuffle_proof.values_aftr.clone(),
             &p_key,
