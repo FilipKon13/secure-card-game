@@ -107,7 +107,7 @@ mod test {
         }
     }
 
-    fn run_protocol(players: &mut Vec<PartyBasic>) {
+    fn run_protocol(players: &mut [PartyBasic]) {
         let mut deck = basic_deck().to_vec();
         loop {
             let mut done = true;
@@ -146,8 +146,7 @@ mod test {
         let translator = Translator::new(&basic_deck());
         let mut perm = deck
             .into_iter()
-            .map(|v| translator.translate(v))
-            .flatten()
+            .filter_map(|v| translator.translate(v))
             .collect::<Vec<usize>>();
         assert_ne!(perm, { 0..52 }.collect::<Vec<usize>>());
         perm.sort();

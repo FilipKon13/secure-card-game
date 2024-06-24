@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use ark_ec::short_weierstrass::Projective;
 use ark_ff::BigInt;
 use ark_pallas::Fr as ScalarField;
@@ -21,9 +23,9 @@ impl EncryptedValue {
     }
 }
 
-impl ToString for EncryptedValue {
-    fn to_string(&self) -> String {
-        serde_json::to_string(&self).unwrap()
+impl Display for EncryptedValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(&self).unwrap().fmt(f)
     }
 }
 
@@ -66,9 +68,9 @@ impl KeyType {
     }
 }
 
-impl ToString for KeyType {
-    fn to_string(&self) -> String {
-        serde_json::to_string(&self).unwrap()
+impl Display for KeyType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(&self).unwrap().fmt(f)
     }
 }
 

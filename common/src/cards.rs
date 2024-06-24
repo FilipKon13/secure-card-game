@@ -91,8 +91,8 @@ impl TryFrom<usize> for Card {
             return Err(ParseCardError {});
         }
         Ok(Card {
-            suit: unsafe { ::std::mem::transmute((value / 13) as u8) },
-            rank: unsafe { ::std::mem::transmute((value % 13 + 2) as u8) },
+            suit: unsafe { ::std::mem::transmute::<u8, Suit>((value / 13) as u8) },
+            rank: unsafe { ::std::mem::transmute::<u8, Rank>((value % 13 + 2) as u8) },
         })
     }
 }

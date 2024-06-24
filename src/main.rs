@@ -28,11 +28,11 @@ struct Cli {
     #[clap(long)]
     server: bool,
 
-    // Additional verify
+    /// Additional verify
     #[clap(long)]
     verify: bool,
 
-    // 52 instead of 16
+    /// 52 instead of 16
     #[clap(long)]
     big_deck: bool,
 }

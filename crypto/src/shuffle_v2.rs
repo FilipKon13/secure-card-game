@@ -17,6 +17,11 @@ pub struct ChallProof {
     proof: KeyType,
 }
 
+/*
+ * First part of the protocol from shuffle.rs,
+ * augmented with zero-knowledge step verification.
+ */
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShuffleWithProof {
     pub values_prev: Vec<EncryptedValue>,
@@ -210,6 +215,10 @@ where
     }
 }
 
+/*
+ * Second part of the protocol from shuffle.rs,
+ * augmented with zero-knowledge step verification.
+ */
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncryptWithProof {
     pub values_prev: Vec<EncryptedValue>,
