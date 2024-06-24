@@ -12,10 +12,11 @@ pub struct Translator {
 
 pub fn basic_deck() -> [EncryptedValue; 52] {
     let g = EncryptedValueType::generator();
-    let mut actual = -g;
+    let mut actual = g;
     core::array::from_fn(|_| {
+        let old = actual;
         actual += g;
-        EncryptedValue::new(actual)
+        EncryptedValue::new(old)
     })
 }
 
@@ -24,7 +25,7 @@ pub fn short_deck() -> [EncryptedValue; 16] {
     let mut res = [EncryptedValue::new(g); 16];
     for i in 0..4 {
         for j in 9..13 {
-            let ind = i * 13 + j;
+            let ind = i * 13 + j + 1;
             *res.get_mut(i * 4 + j - 9).unwrap() =
                 EncryptedValue::new(g * KeyType::from(ind as i64).val);
         }

@@ -23,6 +23,7 @@ struct GameAndTable {
     scores: Vec<usize>,
     my_card: Option<Card>,
     other_cards: Vec<Option<Card>>,
+    me_start: bool,
 }
 
 impl GameAndTable {
@@ -40,6 +41,13 @@ impl GameAndTable {
         self.my_card = None;
         self.other_cards.iter_mut().for_each(|c| *c = None);
     }
+}
+
+fn who_won(first_card: Card, second_card: Card) -> bool {
+    if first_card.suit != second_card.suit {
+        return true;
+    }
+    first_card.rank > second_card.rank
 }
 
 // works only for 2 players atm
@@ -70,11 +78,11 @@ where
         printer: Printer,
         selector: Selector,
     ) -> Self {
-        let is_starting = player_id == 0;
+        let me_start = player_id == 0;
         SimpleGame::<Printer, Selector> {
             player,
             player_id,
-            turn: if is_starting {
+            turn: if me_start {
                 Turn::MeDraw()
             } else {
                 Turn::OtherDraw()
@@ -84,6 +92,7 @@ where
                 scores: vec![0; num_players - 1],
                 my_card: None,
                 other_cards: vec![None; num_players - 1],
+                me_start,
             },
             printer,
             selector,
@@ -118,24 +127,25 @@ where
         self.player.show_hand().is_empty()
     }
 
-    fn battle_cards(&mut self, card: Card, other_card: Card) -> Turn {
+    fn battle_cards(&mut self, card: Card, other_card: Card, me_first: bool) -> Turn {
         if card == other_card {
             panic!("Duplicate cards in deck");
         }
         let is_deck_empty = self.is_deck_empty();
-        let result = if card > other_card {
-            if !is_deck_empty {
-                self.player.draw_from_deck();
-                self.player.let_draw_from_deck(0);
-            }
-            true
+        let result = if me_first {
+            who_won(card, other_card)
         } else {
-            if !is_deck_empty {
+            !who_won(other_card, card)
+        };
+        if !is_deck_empty {
+            if result {
+                self.player.draw_from_deck();
+                self.player.let_draw_from_deck(0);
+            } else {
                 self.player.let_draw_from_deck(0);
                 self.player.draw_from_deck();
             }
-            false
-        };
+        }
         if result {
             self.game_and_table.score.add_assign(1);
         } else {
@@ -185,6 +195,7 @@ where
             }
             Turn::Me() => {
                 self.play_card();
+                self.game_and_table.me_start = true;
                 Turn::OtherResponding()
             }
             Turn::OtherResponding() => {
@@ -192,6 +203,7 @@ where
                 Turn::Battle()
             }
             Turn::Other() => {
+                self.game_and_table.me_start = false;
                 self.let_play_card();
                 Turn::Response()
             }
@@ -203,7 +215,7 @@ where
                 let card = self.game_and_table.my_card.unwrap();
                 let other_card = self.game_and_table.other_cards.first().unwrap().unwrap();
                 self.game_and_table.clear_table();
-                self.battle_cards(card, other_card)
+                self.battle_cards(card, other_card, self.game_and_table.me_start)
             }
             Turn::Done() => unreachable!("Game is done"),
         }
