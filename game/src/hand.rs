@@ -7,7 +7,7 @@ pub struct Hand {
 }
 
 impl Hand {
-    pub fn new(cards: &Vec<common::cards::Card>, image_database: &ImageDatabase) -> Self {
+    pub fn new(cards: &[common::cards::Card], image_database: &ImageDatabase) -> Self {
         let size = cards.len();
         let angle_offset = f64::min(3.0, 60.0 / (size as f64));
         let offset_x = f64::min(30.0, 800.0 / (size as f64));

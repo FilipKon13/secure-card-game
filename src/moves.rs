@@ -12,11 +12,7 @@ pub trait Moves {
 }
 
 fn get_top_of_deck(player: &mut Player) -> usize {
-    player
-        .owners
-        .iter()
-        .position(|o| return o.is_none())
-        .unwrap()
+    player.owners.iter().position(|o| o.is_none()).unwrap()
 }
 
 impl Moves for Player {
@@ -29,8 +25,8 @@ impl Moves for Player {
                 o.send(&ind);
                 o.receive()
             })
-            .for_each(|k| encrypted_card = decrypt(encrypted_card, k));
-        let decrypted_card = decrypt(encrypted_card, *self.keys.get(ind).unwrap());
+            .for_each(|k| encrypted_card = decrypt(&encrypted_card, &k));
+        let decrypted_card = decrypt(&encrypted_card, self.keys.get(ind).unwrap());
         let card = self
             .translator
             .translate(decrypted_card)
@@ -59,10 +55,7 @@ impl Moves for Player {
             .iter_mut()
             .for_each(|o| o.send(&(ind, self.keys.get(ind).unwrap())));
         *self.owners.get_mut(ind).unwrap() = match *self.owners.get(ind).unwrap() {
-            Some(o) => match o {
-                Owner::Me(card) => Some(Owner::Player(card)),
-                _ => panic!("Player is not owner of this card"),
-            },
+            Some(Owner::Me(card)) => Some(Owner::Player(card)),
             _ => panic!("Player is not owner of this card"),
         };
     }
@@ -81,8 +74,8 @@ impl Moves for Player {
             _ => panic!("Player is not owner of this card"),
         };
         let decrypted_card = decrypt(
-            decrypt(*self.deck.get(ind).unwrap(), key),
-            *self.keys.get(ind).unwrap(),
+            &decrypt(self.deck.get(ind).unwrap(), &key),
+            self.keys.get(ind).unwrap(),
         );
         let card = self
             .translator

@@ -1,5 +1,5 @@
 use crate::encryption::{decrypt, encrypt, rand_key};
-use crate::types::{EncryptedValue, KeyType};
+use crate::types::{EncryptedValue, KeyType, PartyState};
 use rand::{seq::SliceRandom, thread_rng};
 
 /*
@@ -23,15 +23,8 @@ use rand::{seq::SliceRandom, thread_rng};
  * verify that deck is restored. Otherwise, game has to be invalidated.
  */
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum PartyState {
-    WaitForShuffle,
-    WaitForEncryption,
-    WaitForDeck,
-    Done,
-}
 pub struct PartyBasic {
-    pub state: PartyState,
+    state: PartyState,
     keys: Vec<KeyType>,
     deck: Vec<EncryptedValue>,
 }
@@ -49,7 +42,7 @@ impl PartyBasic {
         let key = rand_key();
         self.keys.push(key);
         for card in deck.iter_mut() {
-            *card = encrypt(*card, key);
+            *card = encrypt(card, &key);
         }
         deck.shuffle(&mut thread_rng());
         self.state = PartyState::WaitForEncryption;
@@ -61,7 +54,7 @@ impl PartyBasic {
         for card in deck.iter_mut() {
             let new_key = rand_key();
             self.keys.push(new_key);
-            *card = encrypt(decrypt(*card, key), new_key);
+            *card = encrypt(&decrypt(card, &key), &new_key);
         }
         self.state = PartyState::WaitForDeck;
     }
@@ -146,8 +139,8 @@ mod test {
         run_protocol(&mut players);
         let mut deck = players.first().unwrap().deck.clone();
         for player in players.iter() {
-            for (value, &key) in zip(deck.iter_mut(), &player.keys) {
-                *value = decrypt(*value, key);
+            for (value, key) in zip(deck.iter_mut(), &player.keys) {
+                *value = decrypt(value, key);
             }
         }
         let translator = Translator::new(&basic_deck());

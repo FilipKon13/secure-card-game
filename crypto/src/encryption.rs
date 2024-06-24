@@ -41,16 +41,20 @@ impl Translator {
     }
 }
 
-pub fn encrypt(message: EncryptedValue, p_key: KeyType) -> EncryptedValue {
+pub fn encrypt(message: &EncryptedValue, p_key: &KeyType) -> EncryptedValue {
     EncryptedValue::new(message.val * p_key.val)
 }
 
-pub fn decrypt(message: EncryptedValue, p_key: KeyType) -> EncryptedValue {
+pub fn decrypt(message: &EncryptedValue, p_key: &KeyType) -> EncryptedValue {
     EncryptedValue::new(message.val * p_key.val.inverse().unwrap())
 }
 
 pub fn rand_key() -> KeyType {
     KeyType::rand(&mut thread_rng())
+}
+
+pub fn mul_key(a: &KeyType, b: &KeyType) -> KeyType {
+    KeyType::new(a.val * b.val)
 }
 
 #[cfg(test)]
@@ -64,7 +68,7 @@ mod tests {
         let deck = Translator::new(&basic_deck()).cards;
         let g = EncryptedValue::new(EncryptedValueType::generator());
         for (i, v) in deck.iter().enumerate() {
-            assert_eq!(v, encrypt(g, KeyType::from(i as i64)));
+            assert_eq!(v, encrypt(&g, &KeyType::from(i as i64)));
         }
     }
 
@@ -73,8 +77,8 @@ mod tests {
         let translator = Translator::new(&basic_deck());
         const INDEX: i64 = 10;
         let elem = encrypt(
-            EncryptedValue::new(EncryptedValueType::generator()),
-            KeyType::from(INDEX),
+            &EncryptedValue::new(EncryptedValueType::generator()),
+            &KeyType::from(INDEX),
         );
         assert_eq!(INDEX as usize, translator.translate(elem).unwrap());
     }
@@ -85,8 +89,8 @@ mod tests {
         let translator = Translator::new(&basic_deck());
         const INDEX: i64 = 60;
         let elem = encrypt(
-            EncryptedValue::new(EncryptedValueType::generator()),
-            KeyType::from(INDEX),
+            &EncryptedValue::new(EncryptedValueType::generator()),
+            &KeyType::from(INDEX),
         );
         translator.translate(elem).unwrap();
     }
@@ -96,8 +100,8 @@ mod tests {
         let mut rng = test_rng();
         let plaintext = EncryptedValue::new(EncryptedValueType::rand(&mut rng));
         let p_key = KeyType::rand(&mut rng);
-        let ciphertext = encrypt(plaintext, p_key);
-        let plaintext_p = decrypt(ciphertext, p_key);
+        let ciphertext = encrypt(&plaintext, &p_key);
+        let plaintext_p = decrypt(&ciphertext, &p_key);
         assert_eq!(plaintext, plaintext_p);
     }
 
@@ -108,8 +112,8 @@ mod tests {
         let plaintext = EncryptedValue::new(EncryptedValueType::rand(&mut rng));
         let p_key = KeyType::rand(&mut rng);
         let rand_key = KeyType::rand(&mut rng);
-        let ciphertext = encrypt(plaintext, p_key);
-        let plaintext_p = decrypt(ciphertext, rand_key);
+        let ciphertext = encrypt(&plaintext, &p_key);
+        let plaintext_p = decrypt(&ciphertext, &rand_key);
         assert_eq!(plaintext, plaintext_p);
     }
 }

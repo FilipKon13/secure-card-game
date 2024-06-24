@@ -8,6 +8,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 pub(crate) type EncryptedValueType = Projective<PallasConfig>;
+pub(crate) type KeyTypeType = ScalarField;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct EncryptedValue {
@@ -17,6 +18,12 @@ pub struct EncryptedValue {
 impl EncryptedValue {
     pub fn new(val: EncryptedValueType) -> Self {
         EncryptedValue { val }
+    }
+}
+
+impl ToString for EncryptedValue {
+    fn to_string(&self) -> String {
+        serde_json::to_string(&self).unwrap()
     }
 }
 
@@ -59,8 +66,17 @@ impl KeyType {
     }
 }
 
-impl From<i64> for KeyType {
-    fn from(value: i64) -> Self {
+impl ToString for KeyType {
+    fn to_string(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+}
+
+impl<T> From<T> for KeyType
+where
+    ScalarField: From<T>,
+{
+    fn from(value: T) -> Self {
         KeyType::new(ScalarField::from(value))
     }
 }
@@ -87,6 +103,14 @@ impl<'de> Deserialize<'de> for KeyType {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum PartyState {
+    WaitForShuffle,
+    WaitForEncryption,
+    WaitForDeck,
+    Done,
+}
+
 #[cfg(test)]
 mod test {
     use ark_std::test_rng;
@@ -106,13 +130,17 @@ mod test {
         let g = EncryptedValue::new(EncryptedValueType::rand(&mut rng));
         let s1 = KeyType::rand(&mut rng);
         let s2 = KeyType::rand(&mut rng);
-        let mut g1 = encrypt(g, s1);
-        let mut g2 = encrypt(g, s2);
-        g1 = encrypt(g1, s2);
-        g2 = encrypt(g2, s1);
+        let s = KeyType::new(s1.val * s2.val);
+        let mut g1 = encrypt(&g, &s1);
+        let mut g2 = encrypt(&g, &s2);
+        g1 = encrypt(&g1, &s2);
+        g2 = encrypt(&g2, &s1);
+        let g3 = encrypt(&g, &s);
         let ser1 = serde_json::to_string(&g1).unwrap();
         let ser2 = serde_json::to_string(&g2).unwrap();
+        let ser3 = serde_json::to_string(&g3).unwrap();
         assert_eq!(ser1, ser2);
+        assert_eq!(ser1, ser3);
     }
 
     #[test]

@@ -16,6 +16,7 @@ serde_json = "1.0"
 cli = { path = "cli", package = "cli-scg" }
 gtk = "0.16"
 glib = "0.16"
+rand = "0.8.5"
 
 [workspace]
 members = [ "cli", "common" , "crypto", "game", "network"]

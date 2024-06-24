@@ -1,6 +1,6 @@
-use std::{cell::RefCell, io};
 use std::fmt::Display;
 use std::rc::Rc;
+use std::{cell::RefCell, io};
 
 use common::game::{GamePrinter, GameState};
 

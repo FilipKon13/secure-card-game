@@ -29,25 +29,25 @@
 
 \section{Opis projektu}
 
-Celem projektu jest implementacja podstawowych funkcjonalności związanych ze wszelkiego rodzaju grami z ustaloną talią kart, takimi jak
+Celem projektu jest implementacja podstawowych funkcjonalności związanych ze wszelkiego rodzaju grami z ustaloną talią kart, takimi jak:
 \begin{enumerate}
-    \item Tasowanie talii kart
-    \item Rozdawanie kart
-    \item Branie karty ze stosu
-    \item Zagranie karty
+    \item Tasowanie talii kart,
+    \item Rozdawanie kart,
+    \item Ciągnięcie karty ze stosu,
+    \item Zagrywanie karty.
 \end{enumerate}
 
-Oczywiście chcemy, aby wszystkie funkcjonalności były kryptograficznie bezpieczne, co, między innymi,  implikuje, że nikt nie może ustalić kolejności kart w talii oraz by nikt nie informacji ponad to, co wydarzyło się w grze i własnych kart.  
+Oczywiście chcemy, aby wszystkie funkcjonalności były kryptograficznie bezpieczne, co między innymi implikuje, że nikt nie może ustalić kolejności kart w talii oraz by nikt nie posiadał informacji prócz tego, co wydarzyło się w grze i własnych kart na ręce.  
 
 Powyższe funkcjonalności zaprezentowane są na przykładzie prostej gry przypominającej wojnę. Przebieg rozgrywki jest następujący:
 
 \begin{enumerate}
-    \item Talia jest tasowana
-    \item Każdy z graczy ciągnie z talii 5 kart
-    \item Gracze kolejno rzucają karty na stół
-    \item Wygrywa karta, która ma najwyższą wartość wśród wszystkich kart w kolorze pierwszej rzuconej karty (wartości kart są standardowe 2, 3, \ldots, 10, J, Q, K, A)
-    \item Gracz którego karta wygrała zdobywa punkt i będzie zaczynał następną turę
-    \item Jeśli stos kart jest niepusty, każdy ciągnie kartę, zaczynając od osoby, którego karta wygrała
+    \item Talia jest tasowana.
+    \item Każdy z graczy ciągnie z talii 5 kart.
+    \item Gracze kolejno rzucają karty na stół.
+    \item Wygrywa karta, która ma najwyższą wartość wśród wszystkich kart w kolorze pierwszej rzuconej karty (wartości kart są standardowe 2, 3, \ldots, 10, J, Q, K, A).
+    \item Gracz, którego karta wygrała zdobywa punkt i będzie zaczynał następną turę.
+    \item Jeśli stos kart jest niepusty, każdy ciągnie kartę, zaczynając od osoby, którego karta wygrała.
 \end{enumerate}
 
 
@@ -63,16 +63,16 @@ Oprócz standardowego założenia, że CDH jest trudny na naszej krzywej eliptyc
 Tasowanie to najbardziej skomplikowany z użytych protokołów. Wysokopoziomowo, każdy z graczy aplikuje do talii wybraną przez siebie permutację. Widzimy, że jeśli gracz nie jest w stanie poznać permutacji innego gracza, to gracz nie jest w stanie poznać końcowej permutacji talii (lepiej niż zgadując).
 
 
-Potasowana talia to ciąg $(x_1^1x_2^1\ldots c_1, x_1^2,x_2^2\ldots c_2, \ldots, x_1^kx_2^k\ldots c_k)$.
+Potasowana talia to ciąg $(x_1^1x_2^1\ldots c_1, x_1^2,x_2^2\ldots c_2, \ldots, x_1^kx_2^k\ldots c_k)$, gdzie $c_i$ to permutacja $C$.
 
 Zaimplementowaliśmy dwa protokoły. Zacznijmy od opisu prostszego:
 
 \begin{enumerate}
-    \item Gracz $A$ wybiera klucz prywatny $A$ i zaszyfrowuje każdą kartę za pomocą $A$, a następnie tasuje talię. Każda karta jest postaci $Ac$, gdzie $c \in C$,
+    \item Gracz $A$ wybiera klucz prywatny $A$ i zaszyfrowuje każdą kartę za pomocą $A$, a następnie tasuje talię. Każda karta jest postaci $Ac$, gdzie $c \in C$.
 
-    \item Kolejni gracze robią to samo,
+    \item Kolejni gracze robią to samo.
 
-    \item Gracz $A$ wybiera $52$ klucze prywatne. Następnie ściąga szyfrowanie kluczem $A$ i szyfruje kolejne karty kolejnymi kluczami. Każda karta jest postaci $x_1^iB\ldots c_i$,
+    \item Gracz $A$ wybiera $52$ klucze prywatne. Następnie ściąga szyfrowanie kluczem $A$ i szyfruje kolejne karty kolejnymi kluczami. Każda karta jest postaci $x_1^iB\ldots c_i$.
 
     \item Kolejni gracze robią to samo.
 \end{enumerate}
@@ -81,32 +81,38 @@ Na końcu każdy z graczy ma ciąg $(x_1^1x_2^1\ldots c_1, x_1^2,x_2^2\ldots c_2
 
 Protokół ten wymaga założenia o trudności DDH ze względu na pierwszy krok. Gracz drugi otrzymuje $Ai\cdot G$ dla $i\in \{1,\ldots,52\}$, więc w szczególności wśród otrzymanych kart są $AG$ oraz $A2G$. Może on przetestować wszystkie pary kart $x,y$ czy trójka $(x,2G,y)$ jest trójką DH, co daje mu kandydatów na odpowiednie karty. W podobny sposób może on odtworzyć całą permutację zastosowaną przez poprzednią osobę.
 
-Jednak nawet z założeniem DDH protokół ma parę problemów. Gracz może łatwo oszukać w kroku 3 duplikując karty. Zamiast zaszyfrować swoimi kluczami otrzymane karty, to zastępuje niektóre karty z talii inną otrzymaną kartą (np. zamiast zwrócić $x_1a,x_2b,x_3c$ to zwraca $x_1a,x_2a,x_3c$).
+Przy założeniu DDH oraz modelu semi-honest adwersarza powyższy protokół realizuje zamierzony cel. Jeśli adwersarz może robić coś niezgodnie z protokołem to pojawiają się problemy. Gracz może łatwo oszukać w kroku 3 duplikując karty. Zamiast zaszyfrować swoimi kluczami otrzymane karty, to zastępuje niektóre karty z talii inną otrzymaną kartą (np. zamiast zwrócić $x_1a,x_2b,x_3c$ to zwraca $x_1a,x_2a,x_3c$).
 
-Jeśli zrobi to gracz pierwszy, to protokół się nie zakończy się błędem: inni gracze nie zauważą ingerencji, ich klucze prywatne z kroku 2 będą wciąż działać jak powinny, podobnie jak klucze z kroku 4 (bo jeszcze ich nie zaaplikowali). Zaskutkuje to tym, że w pewnym momencie w trakcie gry jedna karta może pojawić się wielokrotnie.
+Jeśli zrobi to gracz pierwszy, to protokół się nie zakończy się błędem: inni gracze nie zauważą jego ingerencji, ich klucze prywatne z kroku 2 będą wciąż działać jak powinny, podobnie jak klucze z kroku 4 (bo jeszcze ich nie zaaplikowali). Zaskutkuje to tym, że w pewnym momencie w trakcie gry jedna karta może pojawić się wielokrotnie.
 
-W celu naprawienia tej luki, na końcu gry wszyscy ujawniają swoje klucze i deszyfrowana jest cała talia by upewnić się, że jest permutacją zbioru $C$.
+W celu naprawienia tej luki, na końcu gry wszyscy ujawniają swoje klucze i deszyfrowana jest cała talia by upewnić się, że jest permutacją zbioru $C$. To pozwala sprawdzić legalność przebiegu rozgrywki, jednak jest to mało satysfakcjonujące rozwiązanie.
 
 Aby poprawić wspomniane aspekty, druga wersja protokołu narzuca na graczy dostarczenie zero\-knowledge dowodów, że poprawnie wykonali wszystkie kroki.
 
-Będziemy potrzebować trzech pomocniczych podprotokołów będących wariacjami podpisu Schnorra. Poniżej stosujemy konwencję, gdzie $Hash(\ldots || X_i || \ldots) = Hash(\ldots || X_1 || \ldots || X_n || \ldots)$.
+Będziemy potrzebować kilku pomocniczych podprotokołów będących wariacjami podpisu Schnorra. Poniżej stosujemy konwencję, gdzie $Hash(\ldots || X_i || \ldots) = Hash(\ldots || X_1 || \ldots || X_n || \ldots)$.
 \\
 
-\noindent \textbf{Masking} Gracz ma dane publiczny punkt $P$ oraz prywatny klucz $x$. Publikuje on $P'$ i chce udowodnić $P' = xP$.
+\noindent \textbf{Masking.} Gracz ma dane publiczny punkt $P$ oraz prywatny klucz $x$. Publikuje on $P'$ i chce udowodnić $P' = xP$.
 \\
 
-\noindent Losuje on $r$ i liczy $R = rP$, $e = Hash(R || P || P')$ (challenge) i $s = r - xe$ (dowód). Publikuje $(e,s)$. 
-\\
+\noindent \begin{enumerate}
+    \item Losuje on $r$ i liczy $R = rP$, $e = Hash(R || P || P')$,
+    \item Liczy $s = r - ex$,
+    \item Publikuje $(e,s)$.
+\end{enumerate} 
 
 \noindent Weryfikacja polega na policzeniu $R^v = sP + eP'$ i sprawdzeniu czy $e = Hash(R^v || P || P')$. Warto zauważyć, że jest to w zasadzie dokładnie podpis Schnorra.
 \\
 
-\noindent \textbf{Multimasking}
+\noindent \textbf{Multimasking.}
 Gracz ma dane publiczne punkty $(P_1,P_2,\ldots,P_n)$ oraz prywatny klucz $x$. Publikuje $(P_1',P_2',\ldots,P_n')$ i chce udowodnić, że $P_i'=xP_i$.
 \\
 
-\noindent Losuje on $r$ i liczy $R_i = rP_i$, $e = Hash(R_i^v || P_i || P_i')$ (challenge) i $s = r - xe$ (dowód). Publikuje $(e,s)$.
-\\
+\noindent \begin{enumerate}
+    \item Losuje on $r$ i liczy $R_i = rP_i$, $e = Hash(R_i^v || P_i || P_i')$,
+    \item Liczy $s = r - ex$,
+    \item Publikuje $(e,s)$.
+\end{enumerate}
 
 \noindent Weryfikacja polega na policzeniu $R_i^v = sP_i + eP_i'$ i sprawdzeniu czy $e = Hash(R_i^v || P_i || P_i')$.
 \\
@@ -127,20 +133,20 @@ Gracz ma dane publiczne punkty $(P_1,P_2,\ldots,P_n)$ oraz prywatny klucz $x$. P
 \noindent Weryfikacja polega na policzeniu $R_a^v = s_aA + e_aP$ oraz $R_b^v = s_bB + e_bP$ i sprawdzeniu czy $e_a = Hash(R_b^v || P || A || B)$ oraz $e_b = Hash(R_a^v || P || A || B)$.
 \\
 
-\noindent \textbf{1-in-2} Gracz ma dane punkty $A,B$ oraz prywatny klucz $x$. Publikuje on $(C,D)$ i chce udowodnić, że $(C,D) = (xA,xB)$ lub $(C,D) = (xB,xA)$ bez ujawiania, który przypadek zachodzi.
+\noindent \textbf{Swap} Gracz ma dane punkty $A,B$ oraz prywatny klucz $x$. Publikuje on $(C,D)$ i chce udowodnić, że $(C,D) = (xA,xB)$ lub $(C,D) = (xB,xA)$ bez ujawniania, który przypadek zachodzi.
 \\
 
 \noindent Wystarczy dwukrotnie zastosować protokół 1-in-2.
 \\
 
 
-Korzystając z protokołów swap oraz multimaskingu można udowodnić, że rzeczywiście pooprawnie wykonało się krok 1 poprzedniego protokołu. Można to osiągnąć poprzez użycie sieci sortującej na odwrót tzn. sieć sortująca jest w stanie posortować dowolną permutację za pomocą statycznego ciągu komparatorów. Przechodząc przez nią na odwrót i używając protokołu swap dla każdego komparatora jesteśmy w stanie dotrzeć do dowolnej permutacji.
+Korzystając z protokołów swap oraz multimaskingu można udowodnić, że rzeczywiście poprawnie wykonało się krok 1 poprzedniego protokołu. Można to osiągnąć poprzez użycie sieci sortującej na odwrót. Sieć sortująca jest w stanie posortować dowolną permutację za pomocą statycznego ciągu komparatorów. Przechodząc przez nią na odwrót i używając protokołu swap dla każdego komparatora jesteśmy w stanie dotrzeć do dowolnej permutacji.
 
 
-Takie podejście daje algorytm wysyłający $\log{n}^2$ razy liniowo wiele punktów i skalarów. Dla $n = 52$ logarytm z $n$ jest względnie duży ($\log{n}^2 > n$). Nawet użycie najlepszej znanej sieci sortującej dla $n=52$ daje nam 19 warstw sieci, co daje prawie tysiąc skalarów i punktów do wysłania. Zamiast tego zdecydowaliśmy się użyć rozszerzonej wersji protokołu 1-in-2, mianowicie 1-in-$n$, którego $n$-krotna aplikacja (jak w swap) pozwoli nam udowodnić cały shuffle za jednym zamachem wysyłając liniowo wiele punktów i kwadratowo wiele skalarów.
+Takie podejście daje algorytm wysyłający $\log^2{n}$ razy liniowo wiele punktów i skalarów. Dla $n = 52$ logarytm z $n$ jest względnie duży ($\log^2{n} > n$). Nawet użycie najlepszej znanej sieci sortującej dla $n=52$ daje nam 19 warstw sieci, co daje prawie tysiąc skalarów i punktów do wysłania. Zamiast tego zdecydowaliśmy się użyć rozszerzonej wersji protokołu 1-in-2, mianowicie 1-in-$n$, którego $n$-krotna aplikacja (jak w swap) pozwoli nam udowodnić cały shuffle za jednym zamachem wysyłając liniowo wiele punktów i kwadratowo wiele skalarów.
 \\
 
-\noindent \textbf{1-in-$n$} Gracz ma dane punkty $P_1,P_2,\ldots,P_n$ oraz prywatny klucz $x$. Publikuje on $P$ i chce udowodnić, że $P = xP_i$ dla pewnego $i$, bez ujawiania wybranego $i$.
+\noindent \textbf{1-in-$n$} Gracz ma dane punkty $P_1,P_2,\ldots,P_n$ oraz prywatny klucz $x$. Publikuje on $P$ i chce udowodnić, że $P = xP_i$ dla pewnego $i$, bez ujawniania wybranego $i$.
 \\
 
 \noindent Opiszemy protokół dla $P = xP_1$
@@ -155,7 +161,7 @@ Takie podejście daje algorytm wysyłający $\log{n}^2$ razy liniowo wiele punkt
     \item Zwraca $(e_1,\ldots,e_n,s_1,\ldots,s_n)$,
 \end{enumerate}
 
-\noindent Weryfikacja polega na policzeniu $R_i^v = e_iP + s_iP_i$ i sprawdzeniu $e_i = Hash(R_i^v || P || P_j)$.
+\noindent Weryfikacja polega na policzeniu $R_i^v = e_iP + s_iP_i$ i sprawdzeniu $e_{i + 1} = Hash(R_i^v || P || P_j)$.
 
 \subsubsection{Ciągnięcie z talii}
 
@@ -169,11 +175,13 @@ Gracz ogłasza, którą kartę chce zagrać, a następnie publikuje swój klucz 
 
 \section{Implementacja i struktura projektu}
 
-Do części kryptograficznej użyliśmy implementacji krzywych eliptycznych z crate'a z rodziny \texttt{arkworks}, a konkretnie krzywej Pallas. Poza tym protokoły zaimplementowane zostały ,,ręcznie''.
 
-Rozgrywka jak i protokoły zaimplementowane zostały jako automat skończony.
+\begin{itemize}
+    \item Do części kryptograficznej użyliśmy implementacji krzywych eliptycznych z crate'a z rodziny \texttt{arkworks}, a konkretnie krzywej Pallas. Poza tym, wyżej opisane protokoły zaimplementowane zostały przez nas.
+    \item Rozgrywka, przez którą rozumiemy tu stany trwającej gry, zaimplementowana została jako automat skończony.
+    \item Do komunikacji sieciowej został użyty \texttt{std::net}. Gracze komunikują się bezpośrednio między sobą przez połączenie TCP. Z uwagi na niemałe wielkości przesyłanych wiadomości został zaimplementowany prosty protokół: najpierw wysyłamy czterobajtową długość wiadomości, a następnie samą wiadomość.
+\end{itemize}
 
-GUI zaimplementowane zostało we framework'u \texttt{gtk}.
 
 
 

@@ -1,8 +1,8 @@
 use clap::{ArgGroup, Parser};
 use cli::{CliPrinter, CliSelector};
-use crypto::encryption::short_deck;
+use crypto::encryption::{basic_deck, short_deck};
 use network::con_startup::ConStartup;
-use player::{DeckPreparation, OtherPlayer};
+use player::{DeckPreparation, DeckPreparationBasic, DeckPreparationVerification, OtherPlayer};
 use simple_game::SimpleGame;
 
 pub mod moves;
@@ -28,6 +28,14 @@ struct Cli {
     /// Hosts the game
     #[clap(long)]
     server: bool,
+
+    // Additional verify
+    #[clap(long)]
+    verify: bool,
+
+    // 52 instead of 16
+    #[clap(long)]
+    big_deck: bool,
 }
 
 fn main() {
@@ -35,6 +43,8 @@ fn main() {
         address,
         client,
         server,
+        verify,
+        big_deck,
     } = Cli::parse();
     assert_ne!(client, server);
     let num_players = 2u32;
@@ -48,7 +58,16 @@ fn main() {
         "client".to_string()
     };
     println!("Preparation start");
-    let player = DeckPreparation::prepare(name, vec![other], server, short_deck().to_vec());
+    let deck = if big_deck {
+        basic_deck().to_vec()
+    } else {
+        short_deck().to_vec()
+    };
+    let player = if verify {
+        DeckPreparationVerification::prepare(name, vec![other], server, deck)
+    } else {
+        DeckPreparationBasic::prepare(name, vec![other], server, deck)
+    };
     println!("Preparation completed");
 
     println!("Player deck size: {}", player.deck.len());
@@ -65,7 +84,7 @@ fn main() {
 
     let (score, scores) = game.play();
 
-    println!("");
+    println!();
     println!("Your score: {}", score);
-    println!("Opponent's score: {:?}", scores.get(0).unwrap());
+    println!("Opponent's score: {:?}", scores.first().unwrap());
 }

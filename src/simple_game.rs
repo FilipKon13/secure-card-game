@@ -31,7 +31,7 @@ impl GameAndTable {
         if let Some(card) = self.my_card {
             res.push(card);
         }
-        if let Some(card) = self.other_cards.get(0).unwrap() {
+        if let Some(card) = self.other_cards.first().unwrap() {
             res.push(*card);
         }
         res
@@ -91,10 +91,7 @@ where
     }
 
     fn is_done(&self) -> bool {
-        match self.turn {
-            Turn::Done() => true,
-            _ => false,
-        }
+        matches!(self.turn, Turn::Done())
     }
 
     fn get_initial_cards(&mut self) {
@@ -204,14 +201,14 @@ where
             }
             Turn::Battle() => {
                 let card = self.game_and_table.my_card.unwrap();
-                let other_card = self.game_and_table.other_cards.get(0).unwrap().unwrap();
+                let other_card = self.game_and_table.other_cards.first().unwrap().unwrap();
                 self.game_and_table.clear_table();
                 self.battle_cards(card, other_card)
             }
             Turn::Done() => unreachable!("Game is done"),
         }
     }
-    
+
     pub fn play_one_step(&mut self) {
         if !self.is_done() {
             self.make_turn();
