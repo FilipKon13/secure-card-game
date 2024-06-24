@@ -74,11 +74,8 @@ impl Display for KeyType {
     }
 }
 
-impl<T> From<T> for KeyType
-where
-    ScalarField: From<T>,
-{
-    fn from(value: T) -> Self {
+impl From<i64> for KeyType {
+    fn from(value: i64) -> Self {
         KeyType::new(ScalarField::from(value))
     }
 }

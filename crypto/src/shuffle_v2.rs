@@ -4,7 +4,7 @@ use ark_std::iterable::Iterable;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::iter::{once, zip};
+use std::iter::zip;
 
 use crate::{
     encryption::encrypt,
@@ -45,12 +45,17 @@ fn hash_to_field(hash: &[u8; 32]) -> KeyType {
     KeyType::new(res)
 }
 
-fn calc_hash(points: &Vec<EncryptedValue>) -> KeyType {
-    let mut hasher = Sha256::new();
+fn calc_hash(mut hasher: Sha256, points: &[EncryptedValue]) -> Sha256 {
     for point in points {
-        hasher.update(&point.to_string());
+        hasher.update(point.to_string());
     }
-    hash_to_field(&hasher.finalize().into())
+    hasher
+}
+
+impl From<Sha256> for KeyType {
+    fn from(value: Sha256) -> KeyType {
+        hash_to_field(&value.finalize().into())
+    }
 }
 
 fn linear_combination(
@@ -81,13 +86,8 @@ where
     let public_key = encrypt(g, p_key);
     let r_i = encrypt(points.get(ind).unwrap(), &r);
     let r_y = encrypt(g, &r);
-    let mut e = calc_hash(
-        &points
-            .iter()
-            .copied()
-            .chain(once(r_y).chain(once(p)).chain(once(r_i)))
-            .collect(),
-    );
+    let hasher_points = calc_hash(Sha256::new(), points);
+    let mut e = calc_hash(hasher_points.clone(), &[r_y, p, r_i]).into();
     for i in (ind + 1..n).chain(0..ind) {
         let s = KeyType::rand(rng);
         let r_i = linear_combination(&e, &p, &s, points.get(i).unwrap());
@@ -96,15 +96,7 @@ where
             challenge: e,
             proof: s,
         });
-        e = calc_hash(
-            &points
-                .iter()
-                .copied()
-                .chain(once(r_y))
-                .chain(once(p))
-                .chain(once(r_i))
-                .collect(),
-        );
+        e = calc_hash(hasher_points.clone(), &[r_y, p, r_i]).into();
     }
     let s = KeyType::new(r.val - (e.val * p_key.val));
     *res.get_mut(ind).unwrap() = Some(ChallProof {
@@ -122,6 +114,7 @@ fn verify_1_in_n(
     points: &[EncryptedValue],
     public_key: &EncryptedValue,
     proof: &[ChallProof],
+    hasher_points: &Sha256,
 ) -> bool {
     for ind in 0..n {
         let ChallProof {
@@ -130,15 +123,7 @@ fn verify_1_in_n(
         } = proof.get(ind).unwrap();
         let r = linear_combination(e, p, s, points.get(ind).unwrap());
         let r_y = linear_combination(e, public_key, s, g);
-        let e_next = calc_hash(
-            &points
-                .iter()
-                .copied()
-                .chain(once(r_y))
-                .chain(once(*p))
-                .chain(once(r))
-                .collect(),
-        );
+        let e_next: KeyType = calc_hash(hasher_points.clone(), &[r_y, *p, r]).into();
         let e_next_real = &proof
             .get(if ind == n - 1 { 0 } else { ind + 1 })
             .unwrap()
@@ -192,8 +177,17 @@ impl ShuffleWithProof {
                 }
             }
         }
+        let hasher_points = calc_hash(Sha256::new(), &self.values_prev);
         for (point, proof) in zip(self.values_aftr.iter(), self.proofs.iter()) {
-            if !verify_1_in_n(n, point, &g, &self.values_prev, &self.public_key, proof) {
+            if !verify_1_in_n(
+                n,
+                point,
+                &g,
+                &self.values_prev,
+                &self.public_key,
+                proof,
+                &hasher_points,
+            ) {
                 return false;
             }
         }
@@ -207,7 +201,7 @@ where
 {
     let r = KeyType::rand(rng);
     let r_p = encrypt(p, &r);
-    let e = calc_hash(&vec![*p, *pp, r_p]);
+    let e: KeyType = calc_hash(Sha256::new(), &[*p, *pp, r_p]).into();
     let s = KeyType::new(r.val - (e.val * k.val));
     ChallProof {
         challenge: e,
@@ -257,7 +251,7 @@ impl EncryptWithProof {
                 proof: s,
             } = proof;
             let r_p = linear_combination(e, pp, s, p);
-            let e_v = calc_hash(&vec![*p, *pp, r_p]);
+            let e_v = calc_hash(Sha256::new(), &[*p, *pp, r_p]).into();
             if *e != e_v {
                 return false;
             }
