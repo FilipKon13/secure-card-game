@@ -69,7 +69,7 @@ mod tests {
         let deck = Translator::new(&basic_deck()).cards;
         let g = EncryptedValue::new(EncryptedValueType::generator());
         for (i, v) in deck.iter().enumerate() {
-            assert_eq!(v, encrypt(&g, &KeyType::from(i as i64)));
+            assert_eq!(v, encrypt(&g, &KeyType::from((i + 1) as i64)));
         }
     }
 
@@ -79,7 +79,7 @@ mod tests {
         const INDEX: i64 = 10;
         let elem = encrypt(
             &EncryptedValue::new(EncryptedValueType::generator()),
-            &KeyType::from(INDEX),
+            &KeyType::from(INDEX + 1),
         );
         assert_eq!(INDEX as usize, translator.translate(elem).unwrap());
     }
@@ -91,7 +91,7 @@ mod tests {
         const INDEX: i64 = 60;
         let elem = encrypt(
             &EncryptedValue::new(EncryptedValueType::generator()),
-            &KeyType::from(INDEX),
+            &KeyType::from(INDEX + 1),
         );
         translator.translate(elem).unwrap();
     }

@@ -154,6 +154,6 @@ mod tests {
             deck_cards: 48,
         };
         let mut printer = CliPrinter {};
-        printer.print_game(&game);
+        printer.print_game(&game).unwrap();
     }
 }

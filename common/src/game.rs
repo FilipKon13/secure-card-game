@@ -1,8 +1,9 @@
 use std::io;
 
 use crate::cards::Card;
-pub trait ShowHand {
+pub trait ShowHandDeck {
     fn show_hand(&self) -> Vec<CardFromDeck>;
+    fn deck_size(&self) -> usize;
 }
 
 pub struct GameState {

@@ -1,9 +1,9 @@
 use std::ops::AddAssign;
 
-use crate::{moves::Moves, player::Player};
+use crate::moves::Moves;
 use common::{
     cards::Card,
-    game::{CardFromDeck, CardSelector, GamePrinter, GameState, ShowHand},
+    game::{CardFromDeck, CardSelector, GamePrinter, GameState, ShowHandDeck},
 };
 
 #[derive(Debug)]
@@ -12,35 +12,18 @@ enum Turn {
     OtherDraw(),
     Me(),
     Other(),
-    OtherResponding(),
-    Response(),
-    Battle(),
+    OtherResponding {
+        my_card: Card,
+    },
+    Response {
+        other_card: Card,
+    },
+    Battle {
+        my_card: Card,
+        other_card: Card,
+        me_start: bool,
+    },
     Done(),
-}
-
-struct GameAndTable {
-    score: usize,
-    scores: Vec<usize>,
-    my_card: Option<Card>,
-    other_cards: Vec<Option<Card>>,
-    me_start: bool,
-}
-
-impl GameAndTable {
-    fn get_table_cards(&self) -> Vec<Card> {
-        let mut res = vec![];
-        if let Some(card) = self.my_card {
-            res.push(card);
-        }
-        if let Some(card) = self.other_cards.first().unwrap() {
-            res.push(*card);
-        }
-        res
-    }
-    fn clear_table(&mut self) {
-        self.my_card = None;
-        self.other_cards.iter_mut().for_each(|c| *c = None);
-    }
 }
 
 fn who_won(first_card: Card, second_card: Card) -> bool {
@@ -51,35 +34,38 @@ fn who_won(first_card: Card, second_card: Card) -> bool {
 }
 
 // works only for 2 players atm
-pub struct SimpleGame<Printer, Selector>
+pub struct SimpleGame<Printer, Selector, PlayerType>
 where
     Printer: GamePrinter,
     Selector: CardSelector,
+    PlayerType: Moves + ShowHandDeck,
 {
-    player: Player,
+    player: PlayerType,
     player_id: usize,
     turn: Turn,
-    game_and_table: GameAndTable,
+    score: usize,
+    scores: Vec<usize>,
     printer: Printer,
     selector: Selector,
 }
 
 const HAND_SIZE: usize = 5;
 
-impl<Printer, Selector> SimpleGame<Printer, Selector>
+impl<Printer, Selector, PlayerType> SimpleGame<Printer, Selector, PlayerType>
 where
     Printer: GamePrinter,
     Selector: CardSelector,
+    PlayerType: Moves + ShowHandDeck,
 {
     pub fn new(
         player_id: usize,
         num_players: usize,
-        player: Player,
+        player: PlayerType,
         printer: Printer,
         selector: Selector,
     ) -> Self {
         let me_start = player_id == 0;
-        SimpleGame::<Printer, Selector> {
+        SimpleGame::<Printer, Selector, PlayerType> {
             player,
             player_id,
             turn: if me_start {
@@ -87,13 +73,8 @@ where
             } else {
                 Turn::OtherDraw()
             },
-            game_and_table: GameAndTable {
-                score: 0,
-                scores: vec![0; num_players - 1],
-                my_card: None,
-                other_cards: vec![None; num_players - 1],
-                me_start,
-            },
+            score: 0,
+            scores: vec![0; num_players - 1],
             printer,
             selector,
         }
@@ -115,12 +96,8 @@ where
         }
     }
 
-    fn deck_size(&self) -> usize {
-        self.player.owners.iter().filter(|e| e.is_none()).count()
-    }
-
     fn is_deck_empty(&self) -> bool {
-        self.deck_size() == 0
+        self.player.deck_size() == 0
     }
 
     fn is_hand_empty(&self) -> bool {
@@ -147,9 +124,9 @@ where
             }
         }
         if result {
-            self.game_and_table.score.add_assign(1);
+            self.score.add_assign(1);
         } else {
-            self.game_and_table.scores.get_mut(0).unwrap().add_assign(1);
+            self.scores.get_mut(0).unwrap().add_assign(1);
         }
         let mut turn = if result { Turn::Me() } else { Turn::Other() };
         if self.is_hand_empty() {
@@ -158,23 +135,40 @@ where
         turn
     }
 
-    fn play_card(&mut self) {
+    fn play_card(&mut self) -> Card {
         let CardFromDeck { card, ind } = self.selector.select_card(&self.player.show_hand());
         self.player.play_card(ind);
-        self.game_and_table.my_card = Some(card);
+        card
     }
 
-    fn let_play_card(&mut self) {
-        let other_card = self.player.let_play_card(0);
-        *self.game_and_table.other_cards.get_mut(0).unwrap() = Some(other_card);
+    fn let_play_card(&mut self) -> Card {
+        self.player.let_play_card(0)
+    }
+
+    fn get_table_cards(&self) -> Vec<Card> {
+        match self.turn {
+            Turn::OtherResponding { my_card } => vec![my_card],
+            Turn::Response { other_card } => vec![other_card],
+            Turn::Battle {
+                my_card,
+                other_card,
+                me_start,
+            } => {
+                if me_start {
+                    vec![my_card, other_card]
+                } else {
+                    vec![other_card, my_card]
+                }
+            }
+            _ => vec![],
+        }
     }
 
     fn make_turn(&mut self) {
-        // dbg!(&self.turn);
         let _ = self.printer.print_game(&GameState {
             hand: self.player.show_hand().iter().map(|f| f.card).collect(),
-            table_cards: self.game_and_table.get_table_cards(),
-            deck_cards: self.deck_size(),
+            table_cards: self.get_table_cards(),
+            deck_cards: self.player.deck_size(),
         });
         self.turn = match self.turn {
             Turn::MeDraw() => {
@@ -193,30 +187,27 @@ where
                     Turn::MeDraw()
                 }
             }
-            Turn::Me() => {
-                self.play_card();
-                self.game_and_table.me_start = true;
-                Turn::OtherResponding()
-            }
-            Turn::OtherResponding() => {
-                self.let_play_card();
-                Turn::Battle()
-            }
-            Turn::Other() => {
-                self.game_and_table.me_start = false;
-                self.let_play_card();
-                Turn::Response()
-            }
-            Turn::Response() => {
-                self.play_card();
-                Turn::Battle()
-            }
-            Turn::Battle() => {
-                let card = self.game_and_table.my_card.unwrap();
-                let other_card = self.game_and_table.other_cards.first().unwrap().unwrap();
-                self.game_and_table.clear_table();
-                self.battle_cards(card, other_card, self.game_and_table.me_start)
-            }
+            Turn::Me() => Turn::OtherResponding {
+                my_card: self.play_card(),
+            },
+            Turn::OtherResponding { my_card } => Turn::Battle {
+                my_card,
+                other_card: self.let_play_card(),
+                me_start: true,
+            },
+            Turn::Other() => Turn::Response {
+                other_card: self.let_play_card(),
+            },
+            Turn::Response { other_card } => Turn::Battle {
+                my_card: self.play_card(),
+                other_card,
+                me_start: false,
+            },
+            Turn::Battle {
+                my_card,
+                other_card,
+                me_start,
+            } => self.battle_cards(my_card, other_card, me_start),
             Turn::Done() => unreachable!("Game is done"),
         }
     }
@@ -231,6 +222,102 @@ where
         while !self.is_done() {
             self.make_turn();
         }
-        (self.game_and_table.score, self.game_and_table.scores)
+        (self.score, self.scores)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::ops::{AddAssign, SubAssign};
+
+    use common::{
+        cards::{Card, Rank, Suit},
+        game::{CardFromDeck, CardSelector, GamePrinter, ShowHandDeck},
+    };
+
+    use crate::moves::Moves;
+
+    use super::SimpleGame;
+
+    struct MockPrinter {}
+
+    impl GamePrinter for MockPrinter {
+        fn print_game(&mut self, _game_state: &common::game::GameState) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    struct MockSelector {}
+
+    impl CardSelector for MockSelector {
+        fn select_card(
+            &mut self,
+            hand: &[common::game::CardFromDeck],
+        ) -> common::game::CardFromDeck {
+            *hand.first().unwrap()
+        }
+    }
+
+    struct MockPlayer {
+        deck_size: usize,
+        hand_size: usize,
+    }
+
+    impl Moves for MockPlayer {
+        fn draw_from_deck(&mut self) -> Card {
+            self.deck_size.sub_assign(1);
+            self.hand_size.add_assign(1);
+            Card {
+                rank: Rank::Ace,
+                suit: Suit::Clubs,
+            }
+        }
+        fn let_draw_from_deck(&mut self, _other: usize) {
+            self.deck_size.sub_assign(1);
+        }
+        fn let_play_card(&mut self, _other: usize) -> Card {
+            Card {
+                rank: Rank::Ace,
+                suit: Suit::Spades,
+            }
+        }
+        fn play_card(&mut self, _ind: usize) {
+            self.hand_size.sub_assign(1);
+        }
+    }
+
+    impl ShowHandDeck for MockPlayer {
+        fn deck_size(&self) -> usize {
+            self.deck_size
+        }
+        fn show_hand(&self) -> Vec<CardFromDeck> {
+            vec![
+                CardFromDeck {
+                    card: Card {
+                        rank: Rank::Ace,
+                        suit: Suit::Clubs,
+                    },
+                    ind: 0
+                };
+                self.hand_size
+            ]
+        }
+    }
+
+    #[test]
+    fn interaction() {
+        let game = SimpleGame::new(
+            0,
+            2,
+            MockPlayer {
+                deck_size: 52,
+                hand_size: 0,
+            },
+            MockPrinter {},
+            MockSelector {},
+        );
+        let (score, scores) = game.play();
+        assert_eq!(score, 26);
+        assert_eq!(scores, vec![0]);
     }
 }

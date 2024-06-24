@@ -1,5 +1,5 @@
 use common::game::CardFromDeck;
-use common::game::ShowHand;
+use common::game::ShowHandDeck;
 use crypto::encryption::basic_deck;
 use crypto::encryption::mul_key;
 use crypto::encryption::Translator;
@@ -250,7 +250,7 @@ impl DeckPreparationVerification {
     }
 }
 
-impl ShowHand for Player {
+impl ShowHandDeck for Player {
     fn show_hand(&self) -> Vec<CardFromDeck> {
         self.owners
             .iter()
@@ -259,6 +259,9 @@ impl ShowHand for Player {
                 _ => None,
             })
             .collect::<Vec<_>>()
+    }
+    fn deck_size(&self) -> usize {
+        self.owners.iter().filter(|e| e.is_none()).count()
     }
 }
 

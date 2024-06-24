@@ -22,28 +22,28 @@ jobs:
         shell: bash
         run: echo Done
 
-    # name: Run check, test and lints
-    # runs-on: ubuntu-latest
-    # steps:
-    #   - name: Checkout source code
-    #     uses: actions/checkout@v4
+    name: Run check, test and lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-    #   - name: Install Rust toolchain
-    #     shell: bash
-    #     run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: Install Rust toolchain
+        shell: bash
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-    #   - name: Install components
-    #     shell: bash
-    #     run: rustup component add clippy rustfmt
+      - name: Install components
+        shell: bash
+        run: rustup component add clippy rustfmt
 
-    #   - name: Run format check
-    #     shell: bash
-    #     run: cargo fmt --all --check
+      - name: Run format check
+        shell: bash
+        run: cargo fmt --all --check
 
-    #   - name: Run clippy
-    #     shell: bash
-    #     run: cargo clippy --all-targets
+      - name: Run clippy
+        shell: bash
+        run: cargo clippy --all-targets
 
-    #   - name: Run tests
-    #     shell: bash
-    #     run: cargo test --workspace
+      - name: Run tests
+        shell: bash
+        run: cargo test --workspace
