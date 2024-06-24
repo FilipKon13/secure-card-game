@@ -4,7 +4,7 @@ use std::rc::Rc;
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 
-use game::game_state::{Data, GameStateLobby, GameStateTable, SceneUpdate};
+use crate::game_state::{Data, GameStateLobby, GameStateTable, SceneUpdate};
 
 pub fn lobby_window() -> (u32, u32) {
     let application = Application::builder()

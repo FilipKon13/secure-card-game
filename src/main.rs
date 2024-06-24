@@ -8,7 +8,6 @@ use simple_game::SimpleGame;
 pub mod moves;
 pub mod player;
 pub mod simple_game;
-pub mod window;
 
 #[derive(Parser, Debug)]
 #[clap(group(
