@@ -3,11 +3,11 @@ use std::net::{TcpListener, TcpStream};
 use crate::connection::TcpConnection;
 
 pub struct ConStartup {
-    player_id: u32,
+    player_id: usize,
 }
 
 impl ConStartup {
-    pub fn new(num_players: u32, player_id: u32) -> Self {
+    pub fn new(num_players: usize, player_id: usize) -> Self {
         assert!(player_id < num_players);
         ConStartup { player_id }
     }

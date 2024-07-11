@@ -19,56 +19,58 @@ const HEIGHT: u16 = 30;
 pub struct CliPrinter {}
 
 impl GamePrinter for CliPrinter {
-    fn print_game(&mut self, game_state: &GameState) -> io::Result<()> {
-        let GameState {
-            hand,
-            table_cards,
-            deck_cards,
-        } = game_state;
+    fn print_game(&mut self, game_state: &GameState) {
+        (|| -> std::io::Result<()> {
+            let GameState {
+                hand,
+                table_cards,
+                deck_cards,
+            } = game_state;
 
-        let mut stdout = io::stdout();
-        stdout.execute(terminal::Clear(terminal::ClearType::All))?;
+            let mut stdout = io::stdout();
+            stdout.execute(terminal::Clear(terminal::ClearType::All))?;
 
-        for y in 0..HEIGHT {
-            for x in 0..WIDHT {
-                if (y == 0 || y == HEIGHT - 1) || (x == 0 || x == WIDHT - 1) {
-                    stdout
-                        .queue(cursor::MoveTo(x, y))?
-                        .queue(style::PrintStyledContent("█".white()))?;
+            for y in 0..HEIGHT {
+                for x in 0..WIDHT {
+                    if (y == 0 || y == HEIGHT - 1) || (x == 0 || x == WIDHT - 1) {
+                        stdout
+                            .queue(cursor::MoveTo(x, y))?
+                            .queue(style::PrintStyledContent("█".white()))?;
+                    }
                 }
             }
-        }
 
-        stdout
-            .queue(cursor::MoveTo(19, 3))?
-            .queue(style::PrintStyledContent("Secure Card Game".white()))?;
-
-        for x in 0..WIDHT {
             stdout
-                .queue(cursor::MoveTo(x, 6))?
-                .queue(style::PrintStyledContent("█".white()))?;
-        }
+                .queue(cursor::MoveTo(19, 3))?
+                .queue(style::PrintStyledContent("Secure Card Game".white()))?;
 
-        stdout
-            .queue(cursor::MoveTo(10, 11))?
-            .queue(style::PrintStyledContent(
-                format!("Cards left in the deck: {}", deck_cards).white(),
-            ))?;
+            for x in 0..WIDHT {
+                stdout
+                    .queue(cursor::MoveTo(x, 6))?
+                    .queue(style::PrintStyledContent("█".white()))?;
+            }
 
-        stdout
-            .queue(cursor::MoveTo(10, 14))?
-            .queue(style::PrintStyledContent("Cards on the table: ".white()))?;
-        print_cards(table_cards)?;
+            stdout
+                .queue(cursor::MoveTo(10, 11))?
+                .queue(style::PrintStyledContent(
+                    format!("Cards left in the deck: {}", deck_cards).white(),
+                ))?;
 
-        stdout
-            .queue(cursor::MoveTo(10, 17))?
-            .queue(style::PrintStyledContent("Cards in the hand: ".white()))?;
-        print_cards(hand)?;
+            stdout
+                .queue(cursor::MoveTo(10, 14))?
+                .queue(style::PrintStyledContent("Cards on the table: ".white()))?;
+            print_cards(table_cards)?;
 
-        stdout.queue(cursor::MoveTo(0, HEIGHT))?;
-        stdout.flush()?;
+            stdout
+                .queue(cursor::MoveTo(10, 17))?
+                .queue(style::PrintStyledContent("Cards in the hand: ".white()))?;
+            print_cards(hand)?;
 
-        Ok(())
+            stdout.queue(cursor::MoveTo(0, HEIGHT))?;
+            stdout.flush()?;
+            Ok(())
+        })()
+        .unwrap();
     }
 }
 
@@ -76,7 +78,7 @@ fn print_cards(cards: &Vec<Card>) -> io::Result<()> {
     let mut stdout = io::stdout();
     for card in cards {
         let card_str = card.to_string() + " ";
-        if card.suit == Suit::Hearths || card.suit == Suit::Diamonds {
+        if card.suit == Suit::Hearts || card.suit == Suit::Diamonds {
             stdout.queue(style::PrintStyledContent(card_str.red()))?;
         } else {
             stdout.queue(style::PrintStyledContent(card_str.white()))?;
@@ -143,7 +145,7 @@ mod tests {
                     rank: Rank::Ten,
                 },
                 Card {
-                    suit: Suit::Hearths,
+                    suit: Suit::Hearts,
                     rank: Rank::King,
                 },
             ],
@@ -154,6 +156,6 @@ mod tests {
             deck_cards: 48,
         };
         let mut printer = CliPrinter {};
-        printer.print_game(&game).unwrap();
+        printer.print_game(&game);
     }
 }

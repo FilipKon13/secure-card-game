@@ -1,9 +1,10 @@
 use clap::{ArgGroup, Parser};
-use cli::{CliPrinter, CliSelector};
+// use cli::{CliPrinter, CliSelector};
 use crypto::encryption::{basic_deck, short_deck};
 use network::con_startup::ConStartup;
 use player::{DeckPreparation, DeckPreparationBasic, DeckPreparationVerification, OtherPlayer};
 use simple_game::SimpleGame;
+use webapp::get_web_interface;
 
 pub mod moves;
 pub mod player;
@@ -20,8 +21,12 @@ struct Cli {
     #[clap(default_value = "localhost:1234")]
     address: String,
 
-    /// Connects to game
+    /// Browser port
     #[clap(long)]
+    port: u16,
+
+    /// Connects to game
+    #[clap(long, conflicts_with = "server")]
     client: bool,
 
     /// Hosts the game
@@ -40,14 +45,20 @@ struct Cli {
 fn main() {
     let Cli {
         address,
+        port,
         client,
         server,
         verify,
         big_deck,
     } = Cli::parse();
     assert_ne!(client, server);
-    let num_players = 2u32;
-    let player_id = if server { 0u32 } else { 1u32 };
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    ctrlc::set_handler(|| std::process::exit(0)).expect("Setting handler should not fail");
+
+    let web_interface = get_web_interface(port);
+
+    let num_players = 2;
+    let player_id = if server { 0 } else { 1 };
     let startup = ConStartup::new(num_players, player_id);
 
     let other = OtherPlayer::new(startup.initialize(&address));
@@ -72,11 +83,11 @@ fn main() {
     println!("Player deck size: {}", player.deck.len());
 
     let game = SimpleGame::new(
-        player_id as usize,
-        num_players as usize,
+        player_id,
+        num_players,
         player,
-        CliPrinter {},
-        CliSelector {},
+        web_interface.clone(),
+        web_interface.clone(),
     );
 
     println!("Starting game");
@@ -86,4 +97,6 @@ fn main() {
     println!();
     println!("Your score: {}", score);
     println!("Opponent's score: {:?}", scores.first().unwrap());
+
+    web_interface.end_game(score, *scores.first().unwrap());
 }

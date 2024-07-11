@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Card Game</title>
+</head>
+<body style="background-image: url('assets/background.jpg');">
+    <h1 style="color: white; font-size: xx-large;">Card game</h1>
+    <hr>
+    <!--  style="width:500px;height:600px;" -->
+    <div>
+        <h2 style="color: white; font-size: x-large;">Your cards</h2>
+        <div id="handcards">
+            <img src="assets/backs/blue.svg" alt="Card back"> 
+            <img src="assets/backs/blue.svg" alt="Card back"> 
+            <img src="assets/backs/blue.svg" alt="Card back"> 
+            <img src="assets/backs/blue.svg" alt="Card back"> 
+            <img src="assets/backs/blue.svg" alt="Card back"> 
+        </div>
+
+        <h2 style="color: white; font-size: x-large;">Table</h2>
+        <div id="table">
+            <img src="assets/backs/blue.svg" alt="Card back", style="visibility: hidden;"> 
+            <img src="assets/backs/blue.svg" alt="Card back", style="visibility: hidden;"> 
+        </div>
+    </div>
+    <h2>Debug div</h2>
+    <div id="debug_div"></div>
+    <script>
+
+        const $table_cards = document.getElementById("table").children
+        const $cards = document.getElementById("handcards").children
+        const $debug = document.getElementById("debug_div");
+        /** @type {WebSocket | null} */
+        const socket = new WebSocket(`ws://${window.location.host}/ws`)
+
+        socket.onopen = () => {
+            for (let i = 0; i < $cards.length; i++) {
+            $cards[i].addEventListener('click', 
+                () => {
+                    socket.send(`${i}`)
+                })
+                
+            }
+        }
+
+        function render_cards(table, elems) {
+            for (let i = 0; i < elems.length; i++) {
+                table[i].src = `assets/fronts/${elems[i]}.svg`
+                table[i].style.visibility = "visible"
+            }
+            for (let i = elems.length; i < table.length; i++) {
+                table[i].style.visibility = "hidden"
+            }
+        }
+        
+        socket.onmessage = (ev) => {
+            $debug.innerText = ev.data
+            if (ev.data === "Select card") {
+                return
+            }
+            const msg = JSON.parse(ev.data)
+            if (typeof msg === "object") {
+                render_cards($cards, msg.hand)
+                render_cards($table_cards, msg.table)
+            }
+        }
+
+    </script>
+</body>
+</html>

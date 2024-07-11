@@ -9,16 +9,19 @@ edition = "2021"
 clap = { version = "4.5.7", features = ["derive"] }
 common = { path = "./common", package = "common-scg" }
 crypto = { path = "./crypto", package = "crypto-scg" }
-network = { path = "./network", package = "network" }
+network = { path = "./network", package = "network-scg" }
+webapp = { path = "./webapp", package = "webapp-scg" }
 # game = { path = "./game", package = "game" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 cli = { path = "cli", package = "cli-scg" }
 rand = "0.8.5"
+ctrlc = "3.4.4"
+env_logger = "0.11.3"
 
 [workspace]
-members = [ "cli", "common" , "crypto", "network"]
-# members = [ "cli", "common" , "crypto", "network", "game"]
+members = [ "cli", "common" , "crypto", "network", "webapp" ]
+# members = [ "cli", "common" , "crypto", "network", "game", "webapp" ]
 
 
 [dev-dependencies]

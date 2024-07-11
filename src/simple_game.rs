@@ -165,7 +165,7 @@ where
     }
 
     fn make_turn(&mut self) {
-        let _ = self.printer.print_game(&GameState {
+        self.printer.print_game(&GameState {
             hand: self.player.show_hand().iter().map(|f| f.card).collect(),
             table_cards: self.get_table_cards(),
             deck_cards: self.player.deck_size(),
@@ -242,9 +242,7 @@ mod test {
     struct MockPrinter {}
 
     impl GamePrinter for MockPrinter {
-        fn print_game(&mut self, _game_state: &common::game::GameState) -> std::io::Result<()> {
-            Ok(())
-        }
+        fn print_game(&mut self, _game_state: &common::game::GameState) {}
     }
 
     struct MockSelector {}

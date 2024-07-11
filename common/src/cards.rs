@@ -4,7 +4,7 @@ use std::{error::Error, fmt::Display};
 #[repr(u8)]
 pub enum Suit {
     Spades = 0,
-    Hearths,
+    Hearts,
     Diamonds,
     Clubs,
 }
@@ -39,22 +39,34 @@ pub enum PlayingCard {
     Up(Card),
 }
 
-impl Display for Card {
+impl Display for Rank {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let rank = match self.rank {
-            x if (x as isize) <= 10 => (x as isize).to_string(),
-            Rank::Jack => "J".to_string(),
-            Rank::Queen => "Q".to_string(),
-            Rank::King => "K".to_string(),
-            Rank::Ace => "A".to_string(),
+        match *self {
+            x if (x as isize) <= 10 => (x as isize).fmt(f),
+            Rank::Jack => "J".fmt(f),
+            Rank::Queen => "Q".fmt(f),
+            Rank::King => "K".fmt(f),
+            Rank::Ace => "A".fmt(f),
             _ => unreachable!(),
-        };
-        let suit = match self.suit {
+        }
+    }
+}
+
+impl Display for Suit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
             Suit::Spades => "♠",
-            Suit::Hearths => "♥",
+            Suit::Hearts => "♥",
             Suit::Diamonds => "♦",
             Suit::Clubs => "♣",
-        };
+        }
+        .fmt(f)
+    }
+}
+
+impl Display for Card {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Card { rank, suit } = self;
         write!(f, "{}{}", rank, suit)
     }
 }
@@ -63,32 +75,29 @@ impl Display for PlayingCard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PlayingCard::Up(card) => card.fmt(f),
-            PlayingCard::Hidden => write!(f, "#"),
+            PlayingCard::Hidden => "#".fmt(f),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParseCardError {}
-
-impl Error for ParseCardError {
-    fn description(&self) -> &str {
-        "Provided index does not represent a card"
-    }
+#[derive(Debug)]
+pub struct ParseCardError {
+    index: usize,
 }
 
-impl std::fmt::Display for ParseCardError {
+impl Display for ParseCardError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        #[allow(deprecated)]
-        self.description().fmt(f)
+        write!(f, "Provided index {} does not represent a card", self.index)
     }
 }
+
+impl Error for ParseCardError {}
 
 impl TryFrom<usize> for Card {
     type Error = ParseCardError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if value >= 52 {
-            return Err(ParseCardError {});
+            return Err(ParseCardError { index: value });
         }
         Ok(Card {
             suit: unsafe { ::std::mem::transmute::<u8, Suit>((value / 13) as u8) },

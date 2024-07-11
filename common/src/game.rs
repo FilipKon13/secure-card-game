@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::cards::Card;
 pub trait ShowHandDeck {
     fn show_hand(&self) -> Vec<CardFromDeck>;
@@ -18,7 +16,7 @@ pub struct PlayerBasic {
 }
 
 pub trait GamePrinter {
-    fn print_game(&mut self, game_state: &GameState) -> io::Result<()>;
+    fn print_game(&mut self, game_state: &GameState);
 }
 
 #[derive(Debug, Clone, Copy)]

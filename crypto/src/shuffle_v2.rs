@@ -178,20 +178,20 @@ impl ShuffleWithProof {
             }
         }
         let hasher_points = calc_hash(Sha256::new(), &self.values_prev);
-        for (point, proof) in zip(self.values_aftr.iter(), self.proofs.iter()) {
-            if !verify_1_in_n(
-                n,
-                point,
-                &g,
-                &self.values_prev,
-                &self.public_key,
-                proof,
-                &hasher_points,
-            ) {
-                return false;
-            }
-        }
-        true
+        self.values_aftr
+            .iter()
+            .zip(self.proofs.iter())
+            .all(|(point, proof)| {
+                verify_1_in_n(
+                    n,
+                    point,
+                    &g,
+                    &self.values_prev,
+                    &self.public_key,
+                    proof,
+                    &hasher_points,
+                )
+            })
     }
 }
 
