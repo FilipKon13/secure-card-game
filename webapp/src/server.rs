@@ -106,6 +106,7 @@ async fn run_server(
                     .app_data(addr.clone())
                     .route(web::get().to(echo_ws)),
             )
+            .service(actix_files::Files::new("/", "./webapp/static"))
             .wrap(middleware::Logger::default())
     })
     .workers(2)
